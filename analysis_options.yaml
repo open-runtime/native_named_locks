@@ -1,0 +1,10 @@
+analyzer:
+  strong-mode:
+    implicit-casts: false
+    implicit-dynamic: false
+  errors:
+    todo: ignore
+linter:
+  rules:
+    lines_longer_than_80_chars: false # Disable the default 80 chars limit
+    line-length: 180 # Set the desired line length

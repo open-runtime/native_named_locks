@@ -1,0 +1,13 @@
+name: runtime_native_named_locks
+version: 0.0.1
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  platform: ^3.1.4
+  ffi: ^2.1.2
+  windows_foundation: ^0.2.0
+
+
+dev_dependencies:
+  test: ^1.25.2

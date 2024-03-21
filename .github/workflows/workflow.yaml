@@ -1,0 +1,435 @@
+name: Test Named Locks
+
+on:
+  push:
+    branches:
+      - aot_monorepo_compat
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+
+jobs:
+  define-matrices:
+    name: Setup Matrix
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        config:
+          - {
+            platforms: [
+#              {
+#                runner: macos-13-xlarge,
+#                refined_matrix: macos_apple_silicon,
+#                name: macOS (Apple Silicon),
+#                system_information: {
+#                  operating_system_family: macos,
+#                  kernel_architecture: arm64,
+#                  kernel_family: unix
+#                },
+#                architecture: {
+#                  dart: arm64,
+#                }
+#              },
+#              {
+#                runner: macos-13-large,
+#                refined_matrix: macos_intel,
+#                name: macOS (Intel),
+#                system_information: {
+#                  operating_system_family: macos,
+#                  kernel_architecture: x86_64,
+#                  kernel_family: unix
+#                },
+#                architecture: {
+#                  dart: x64,
+#                }
+#              },
+#              {
+#                runner: aot-linux-runner,
+#                refined_matrix: ubuntu,
+#                name: Ubuntu,
+#                system_information: {
+#                  operating_system_family: linux,
+#                  kernel_architecture: x86_64,
+#                  kernel_family: unix
+#                },
+#                architecture: {
+#                  dart: x64,
+#                }
+#              },
+              {
+                runner: aot-windows-x64-runner,
+                refined_matrix: windows,
+                name: Windows,
+                system_information: {
+                  operating_system_family: windows,
+                  kernel_architecture: x86_64,
+                  kernel_family: windows_nt
+                },
+                architecture: {
+                  dart: x64,
+                }
+              }
+            ]
+          }
+
+    steps:
+      - name: Install jq
+        run: |
+          if ! command -v jq &> /dev/null; then
+            sudo apt-get update
+            sudo apt-get install -y jq
+          fi
+
+      - name: Output Matrices
+        id: matrices
+        run: |
+          configurations=$(jq -c '.' <<< '${{ toJSON(matrix.config.platforms) }}')
+          echo "metricized=$configurations" >> $GITHUB_OUTPUT
+
+      - name: Output Refined Matrix
+        id: refined
+        run: |
+          matrix_names=("macos_intel" "macos_apple_silicon" "ubuntu" "windows")
+          for name in "${matrix_names[@]}"; do
+            echo "${name}_matrix=$(jq -c ".[] | select(.refined_matrix == \"${name}\")" <<< '${{ steps.matrices.outputs.metricized }}')" >> $GITHUB_OUTPUT
+          done
+
+      - name: Echo Matrices Outputs
+        run: |
+          echo 'macos_intel_matrix=${{ steps.refined.outputs.macos_intel_matrix }}'
+          echo 'macos_apple_silicon_matrix="${{ steps.refined.outputs.macos_apple_silicon_matrix }}"'
+          echo 'ubuntu_matrix="${{ steps.refined.outputs.ubuntu_matrix }}"'
+          echo 'windows_matrix="${{ steps.refined.outputs.windows_matrix }}"'
+    outputs:
+      MACOS_INTEL_MATRIX: ${{ steps.refined.outputs.macos_intel_matrix }}
+      MACOS_APPLE_SILICON_MATRIX: ${{ steps.refined.outputs.macos_apple_silicon_matrix }}
+      UBUNTU_MATRIX: ${{ steps.refined.outputs.ubuntu_matrix }}
+      WINDOWS_MATRIX: ${{ steps.refined.outputs.windows_matrix }}
+
+
+#  macos-apple-silicon-matrix:
+#    name: Setup ${{ matrix.config.name }} Matrix
+#    needs:
+#      - define-matrices
+#    strategy:
+#      fail-fast: false
+#      matrix:
+#        config:
+#          - ${{ fromJSON(needs.define-matrices.outputs.MACOS_INTEL_MATRIX) }}
+#    runs-on: ubuntu-latest
+#    steps:
+#      - name: Output Matrices
+#        id: matrices
+#        run: |
+#          configuration=$(jq -c '.' <<< '${{ toJSON(matrix.config) }}')
+#          echo "metricized=$configuration" >> $GITHUB_OUTPUT
+#    outputs:
+#      MATRIX_CONFIG: ${{ steps.matrices.outputs.metricized }}
+
+#  macos-intel-matrix:
+#    name: Setup ${{ matrix.config.name }} Matrix
+#    needs:
+#      - define-matrices
+#    strategy:
+#      fail-fast: false
+#      matrix:
+#        config:
+#          - ${{ fromJSON(needs.define-matrices.outputs.MACOS_APPLE_SILICON_MATRIX) }}
+#    runs-on: ubuntu-latest
+#    steps:
+#      - name: Output Matrices
+#        id: matrices
+#        run: |
+#          configuration=$(jq -c '.' <<< '${{ toJSON(matrix.config) }}')
+#          echo "metricized=$configuration" >> $GITHUB_OUTPUT
+#    outputs:
+#      MATRIX_CONFIG: ${{ steps.matrices.outputs.metricized }}
+
+#  ubuntu-matrix:
+#    name: Setup ${{ matrix.config.name }} Matrix
+#    needs:
+#      - define-matrices
+#    strategy:
+#      fail-fast: false
+#      matrix:
+#        config:
+#          - ${{ fromJSON(needs.define-matrices.outputs.UBUNTU_MATRIX) }}
+#    runs-on: ubuntu-latest
+#    steps:
+#      - name: Output Matrices
+#        id: matrices
+#        run: |
+#          configuration=$(jq -c '.' <<< '${{ toJSON(matrix.config) }}')
+#          echo "metricized=$configuration" >> $GITHUB_OUTPUT
+#    outputs:
+#      MATRIX_CONFIG: ${{ steps.matrices.outputs.metricized }}
+
+  windows-matrix:
+    name: Setup ${{ matrix.config.name }} Matrix
+    needs:
+      - define-matrices
+    strategy:
+      fail-fast: false
+      matrix:
+        config:
+          - ${{ fromJSON(needs.define-matrices.outputs.WINDOWS_MATRIX) }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Output Matrices
+        id: matrices
+        run: |
+          configuration=$(jq -c '.' <<< '${{ toJSON(matrix.config) }}')
+          echo "metricized=$configuration" >> $GITHUB_OUTPUT
+    outputs:
+      MATRIX_CONFIG: ${{ steps.matrices.outputs.metricized }}
+
+#  macos-apple-silicon-composition:
+#    name: Module Compositions ${{ matrix.config.name }}
+#    needs:
+#      - macos-apple-silicon-matrix
+#    uses: ./.github/workflows/reusable-module-composition.yaml
+#    with:
+#      matrix-config: ${{ needs.macos-apple-silicon-matrix.outputs.MATRIX_CONFIG }}
+#    secrets: inherit
+#
+#  macos-intel-composition:
+#    name: Module Compositions ${{ matrix.config.name }}
+#    needs:
+#      - macos-intel-matrix
+#    uses: ./.github/workflows/reusable-module-composition.yaml
+#    with:
+#      matrix-config: ${{ needs.macos-intel-matrix.outputs.MATRIX_CONFIG }}
+#    secrets: inherit
+
+  windows-composition:
+    name: Module Compositions ${{ matrix.config.name }}
+    needs:
+      - windows-matrix
+    uses: ./.github/workflows/reusable-module-composition.yaml
+    with:
+      matrix-config: ${{ needs.windows-matrix.outputs.MATRIX_CONFIG }}
+    secrets: inherit
+
+#  ubuntu-composition:
+#    name: Module Compositions ${{ matrix.config.name }}
+#    needs:
+#      - ubuntu-matrix
+#    uses: ./.github/workflows/reusable-module-composition.yaml
+#    with:
+#      matrix-config: ${{ needs.ubuntu-matrix.outputs.MATRIX_CONFIG }}
+#    secrets: inherit
+
+#  dockerization:
+#    name: Dockerize Modules from Ubuntu Composition
+#    runs-on: ubuntu-latest
+#    needs:
+#      - ubuntu-composition
+#    steps:
+#      - name: Echo Dockerization
+#        id: configurations
+#        run: |
+#          _modules='${{ needs.ubuntu-composition.outputs.DOCKERIZATION }}'
+#          echo "modules=$(echo $_modules | jq . -c)" >> "$GITHUB_OUTPUT"
+#    outputs:
+#      MODULES: ${{ steps.configurations.outputs.modules }}
+#
+#  #  TODO Get Smart About Outputting the Build Artifacts/Assets
+#  containerize:
+#    name: ${{ matrix.dockerization.name }} Image
+#    runs-on: ${{ matrix.config.runner }}
+#    needs:
+#      - dockerization
+#    strategy:
+#      fail-fast: false
+#      matrix:
+#        # Dockerization config - note this will be outputted as such
+#        # {
+#        #   "name": "Big Query",
+#        #   "module": "runtime_native_io_big_query",
+#        #   "context": "packages/aot/data/persistence/parents/big_query",
+#        #   "dockerfile": "packages/aot/data/persistence/parents/big_query/Dockerfile"
+#        # }
+#        dockerization: ${{ fromJSON(needs.dockerization.outputs.MODULES) }}
+#        # Runner configurations
+#        config:
+#          - {
+#            # These can be small as they are just moving binaries around & uploading images
+#            runner: ubuntu-latest,
+#            refined_matrix: ubuntu,
+#            name: Ubuntu,
+#            system_information: {
+#              operating_system_family: linux,
+#              kernel_architecture: x86_64,
+#              kernel_family: unix
+#            },
+#            architecture: {
+#              dart: x64,
+#            }
+#          }
+#
+#    env:
+#      GH_IMAGE_NAME: ghcr.io/${{ github.repository_owner }}/aot_monorepo/${{ matrix.dockerization.module }}_grpc_service
+#      GCP_PROJECT_ID: global-cloud-runtime
+#      GCP_REPOSITORY: runtime-native-io-aot-modules
+#      GCP_SERVICE: ${{ matrix.dockerization.module }}_grpc_service
+#      GCP_REGION: us-east5 # TODO: update Artifact Registry location
+#
+#    steps:
+#      - name: Checkout
+#        uses: actions/checkout@v3.6.0
+#        with:
+#          lfs: true
+
+# TODO Uncomment for prod
+#      - name: Restore Cached Module Executables
+#        uses: actions/cache@v3.3.1
+#        id: cache-aot-module-executables
+#        with:
+#          path: ${{ github.workspace }}
+#          key: executable-cache-${{ matrix.config.system_information.operating_system_family }}-${{ matrix.config.system_information.kernel_architecture }}-${{ hashFiles('/packages/aot/**/dist/**') }}-${{ hashFiles('**/pubspec.lock') }}
+#          restore-keys: executable-cache-${{ matrix.config.system_information.operating_system_family }}-${{ matrix.config.system_information.kernel_architecture }}-
+
+# TODO Uncomment for prod
+#      - name: Echo restored caches
+#        run: |
+#          echo "Listing contents of the restored cache:"
+#          ls
+
+# TODO Uncomment for prod
+#      - name: Echo Dockerization for Container
+#        run: |
+#          MODULES='${{ needs.dockerization.outputs.MODULES }}'
+#          echo $(echo "$MODULES" | jq .)
+
+# TODO Uncomment for prod
+#      - name: Echo Local Container Assets
+#        run: |
+#          echo "Downloaded Cache Executables Contents:"
+#          echo "$(find ./packages/aot/* -type f -iname 'metadata.config.g.json')"
+#          echo "$(find ./packages/aot/* -type f -iname 'Dockerfile')"
+#          echo "$(find ./packages/aot/* -type f -iname '*_cli')"
+
+# TODO Uncomment for prod
+#      - name: Echo Dockerfile
+#        working-directory: ${{ matrix.dockerization.context }}
+#        run: |
+#          echo "Contents of Dockerfile:"
+#          cat Dockerfile
+
+# TODO Uncomment for prod
+#      - name: Log in to GitHub Container Registry
+#        uses: docker/login-action@v2.2.0
+#        with:
+#          registry: ghcr.io
+#          username: ${{ github.actor }}
+#          password: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+
+# TODO Uncomment for prod
+#      - name: Echo Working Directory Resources
+#        working-directory: ${{ matrix.dockerization.context }}
+#        run: |
+#          echo "Contents of Working Directory:"
+#          ls
+#          cd ./dist
+#          echo "Contents of Working Directory Dist:"
+#          ls
+
+      # Build the Docker image for the package corresponding to the current job
+# TODO Uncomment for prod
+#      - name: Build Docker Image for GitHub Container Registry
+#        run: |
+#          docker build --label "org.opencontainers.image.source=https://github.com/open-runtime/aot_monorepo" --label "org.opencontainers.image.description=${{ matrix.dockerization.name }} (${{ matrix.config.system_information.operating_system_family }}_${{ matrix.config.system_information.kernel_architecture }}_${{ matrix.dockerization.module }})" --label "org.opencontainers.image.licenses=PROPRIETARY" -t $GH_IMAGE_NAME  -f ${{ matrix.dockerization.dockerfile }} ${{ matrix.dockerization.context }}
+
+# TODO Uncomment for prod
+#      - name: Push Docker Image to GitHub Container Registry
+#        run: |
+#          docker push ${{ env.GH_IMAGE_NAME }}
+
+#      - name: Run GitHub Docker Image and Echo Output
+#        run: |
+#          name=$GH_IMAGE_NAME
+#          CONTAINER_ID=$(docker run -p 8080:8080 $name)
+#          echo "Container ID: $CONTAINER_ID"
+#          docker ps
+#          docker logs $CONTAINER_ID
+#          sleep 10 # Wait for the container to start
+#          docker stop $CONTAINER_ID
+
+# TODO Uncomment for prod
+#      - name: Authenticate to Google Cloud
+#        uses: google-github-actions/auth@v1.1.1
+#        with:
+#          credentials_json: ${{ secrets.GCLOUD_OPEN_RUNTIME_GITHUB_ACTIONS_SERVICE_ACCOUNT_JSON }}
+#          project_id: ${{ env.GCP_PROJECT_ID }}
+
+# TODO Uncomment for prod
+#      - name: Set up gcloud Cloud SDK environment
+#        uses: google-github-actions/setup-gcloud@v1.1.1
+#        with:
+#          version: '>= 424.0.0'
+
+# TODO Uncomment for prod
+#      - name: 'Use gcloud CLI'
+#        run: 'gcloud info'
+
+# TODO Uncomment for prod
+#      - name: Authenticate to Google Cloud Artifact Registry
+#        uses: docker/login-action@v2.1.0
+#        with:
+#         registry: ${{ env.GCP_REGION }}-docker.pkg.dev
+#         username: _json_key
+#         password: ${{ secrets.GCLOUD_OPEN_RUNTIME_GITHUB_ACTIONS_SERVICE_ACCOUNT_JSON }}
+
+# TODO Uncomment for prod
+#      - name: Build Google Cloud Run Docker Image
+#        run: |
+#          docker build -t "${{ env.GCP_REGION }}-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/${{ env.GCP_REPOSITORY }}/${{ env.GCP_SERVICE }}" -f ${{ matrix.dockerization.dockerfile }} ${{ matrix.dockerization.context }}
+#
+#      - name: Push Google Cloud Run Docker Image to Artifact Registry
+#        run: |
+#          docker push "${{ env.GCP_REGION }}-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/${{ env.GCP_REPOSITORY }}/${{ env.GCP_SERVICE }}"
+
+      # Add this step to transform the service name
+# TODO Uncomment for prod
+#      - name: Transform service name
+#        id: transform_service_name
+#        run: |
+#          name=${{ env.GCP_SERVICE }}
+#          transformed=$(echo $name | sed 's/_/-/g')
+#          echo "Transformed service name: $transformed"
+#          echo "GCP_DASH_CASE_SERVICE_NAME=$transformed" >> $GITHUB_OUTPUT
+
+# TODO Uncomment for prod
+#      - name: Deploy to Cloud Run
+#        id: deploy
+#        uses: google-github-actions/deploy-cloudrun@v1.0.2
+#        with:
+#          service: ${{ steps.transform_service_name.outputs.GCP_DASH_CASE_SERVICE_NAME }}
+#          region: ${{ env.GCP_REGION }}
+#          # NOTE: If using a pre-built image, update the image name here
+#          image: ${{ env.GCP_REGION }}-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/${{ env.GCP_REPOSITORY }}/${{ env.GCP_SERVICE }}
+#          flags: --allow-unauthenticated
+
+# TODO Uncomment for prod
+#      - name: 'Echo Cloud Run Deployment URL'
+#        run: 'curl "${{ steps.deploy.outputs.url }}"'
+
+
+#  release:
+#    if: startsWith(github.ref, 'refs/tags/v')
+#    runs-on: ubuntu-latest
+#    needs: build_and_test
+#    steps:
+#      - uses: actions/checkout@v3.6.0
+#
+#      - name: Download build artifact
+#        uses: actions/download-artifact@v3
+#
+#      - name: Upload artifact to release - macos_arm64
+#        uses: fnkr/github-action-ghr@v1
+#        env:
+#          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+#          GHR_PATH: ./build
