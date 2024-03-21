@@ -34,6 +34,9 @@ void main() {
         int native_last_error = GetLastError();
         String? error_message = getRestrictedErrorDescription(native_last_error);
 
+        print(native_last_error);
+        print(error_message);
+
         print(lock.name);
         print(lock.handle.address);
         print(lock.mutex_handle.address);
