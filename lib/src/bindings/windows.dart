@@ -58,8 +58,8 @@ const INFINITE = 0xFFFFFFFF;
 /// rights simply open a handle to the existing mutex.
 ///
 /// [lpMutexAttributes] A pointer to a [SECURITY_ATTRIBUTES] structure.
-@Native<HANDLE Function(Pointer<Void>, IntPtr, IntPtr)>()
-external HANDLE CreateMutexW(Pointer<Void> lpMutexAttributes, int bInitialOwner, int lpName);
+@Native<Pointer<HANDLE> Function(Pointer<Void>, IntPtr, IntPtr)>()
+external Pointer<HANDLE> CreateMutexW(Pointer<Void> lpMutexAttributes, int bInitialOwner, int lpName);
 
 /// Dart FFI for Windows [ReleaseMutex]
 ///
@@ -95,8 +95,8 @@ external HANDLE CreateMutexW(Pointer<Void> lpMutexAttributes, int bInitialOwner,
 /// for a mutex that it already owns. However, to release its ownership, the thread must call
 /// [ReleaseMutex] one time for each time that it obtained ownership (either through [CreateMutex]
 /// or a wait function).
-@Native<Int32 Function(HANDLE)>()
-external int ReleaseMutex(HANDLE hMutex);
+@Native<Int32 Function(Pointer<HANDLE>)>()
+external int ReleaseMutex(Pointer<HANDLE> hMutex);
 
 /// Dart FFI for Windows [WaitForSingleObject]
 ///
@@ -128,8 +128,8 @@ external int ReleaseMutex(HANDLE hMutex);
 /// the object is signaled.
 ///
 /// Returns a [DWORD] value indicating the result of the wait operation.
-@Native<Uint32 Function(HANDLE, Uint32)>()
-external int WaitForSingleObject(HANDLE hHandle, int dwMilliseconds);
+@Native<Uint32 Function(Pointer<HANDLE>, Uint32)>()
+external int WaitForSingleObject(Pointer<HANDLE> hHandle, int dwMilliseconds);
 
 /// Dart FFI for Windows [CloseHandle]
 ///
@@ -179,8 +179,8 @@ external int WaitForSingleObject(HANDLE hHandle, int dwMilliseconds);
 ///
 /// Do not use [CloseHandle] to close a handle to an open registry key. Instead, use the
 /// [RegCloseKey] function.
-@Native<Int32 Function(HANDLE)>()
-external int CloseHandle(HANDLE hObject);
+@Native<Int32 Function(Pointer<HANDLE>)>()
+external int CloseHandle(Pointer<HANDLE> hObject);
 
 /// Dart FFI for Windows [GetLastError]
 ///

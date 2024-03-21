@@ -8,9 +8,10 @@ class _WindowsNamedLock extends NamedLock<HANDLE, HANDLE> {
   late final Pointer<HANDLE> handle;
 
   @override
-  late final HANDLE mutex_handle;
+  late final Pointer<HANDLE> mutex_handle;
 
   static final _finalizer = Finalizer<Pointer<HANDLE>>((Pointer<HANDLE> ptr) {
+    // TODO: Is this proper?
     calloc.free(ptr);
   });
 
