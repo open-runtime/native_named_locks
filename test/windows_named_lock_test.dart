@@ -19,8 +19,9 @@ void main() {
     });
 
     test('should throw an exception when initialization fails', () {
-      // Arrange
-      const invalid = 'Invalid/\\Name';
+      // Anything over 256 characters
+      const invalid =
+          'hereisarandomstringcontainingexactlythreehundredletterswithnospacesandnospecialcharactersItisquitealongstringisntitIhopetheresnoneedtomakethisanylongerthanitshouldbeTherearequitealotofsentenceslikethisonethatyoucanaddtothisstringwithoutanyspacesaslongasyoudontusepunctuationorspecialcharactersSomeonemightaskwhythisstringexistsandtheanswertothatquestionissimplybecauseitwasrequestedbytheoriginalposter';
 
       Object? error;
       NamedLock? lock;
