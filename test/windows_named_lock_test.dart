@@ -1,7 +1,9 @@
 @TestOn('windows')
-import 'package:runtime_native_named_locks/errors.dart';
-import 'package:runtime_native_named_locks/primitives.dart';
-import 'package:test/test.dart';
+
+import 'package:runtime_native_named_locks/primitives.dart' show NamedLock;
+import 'package:runtime_native_named_locks/src/bindings/windows.dart' show GetLastError;
+import 'package:test/test.dart' show TestOn, equals, expect, group, isNonZero, isNotNull, isNull, tearDown, test;
+import 'package:windows_foundation/internal.dart' show getRestrictedErrorDescription;
 
 void main() {
   group('WindowsNamedLock', () {
@@ -28,6 +30,10 @@ void main() {
 
       try {
         lock = NamedLock(name: invalid);
+
+        int native_last_error = GetLastError();
+        String? error_message = getRestrictedErrorDescription(native_last_error);
+
         print(lock.name);
         print(lock.handle.address);
         print(lock.mutex_handle.address);
