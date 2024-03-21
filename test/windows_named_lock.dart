@@ -1,35 +1,55 @@
 @TestOn('windows')
-
+import 'package:runtime_native_named_locks/errors.dart';
 import 'package:runtime_native_named_locks/primitives.dart';
 import 'package:test/test.dart';
 
 void main() {
   group('WindowsNamedLock', () {
-    late NamedLock lock;
+    test('should initialize successfully with a valid name', () {
+      // Arrange
+      const name = 'MyNamedLock';
 
-    setUp(() {
-      lock = NamedLock(name: 'test-named-lock');
+      // Act
+      final lock = NamedLock(name: name);
+
+      // Assert
+      expect(lock.name, equals(name));
+      expect(lock.handle, isNotNull);
+      expect(lock.handle.address, isNonZero);
     });
 
-    tearDown(() {
-      lock.dispose();
-    });
+    test('should throw an exception when initialization fails', () {
+      // Arrange
+      const invalid = 'Invalid/\\Name';
 
-    test('acquireLock', () {
-      // Test the acquireLock function
-      // Add your test assertions here
+      // Act & Assert
+      expect(
+        () => NamedLock(name: invalid),
+        throwsA(isA<Exception>().having(
+          (e) => e.toString(),
+          'message',
+          contains(NamedLockErrors.createFailed.toString()),
+        )),
+      );
     });
+  });
 
-    test('releaseLock', () {
-      // Test the releaseLock function
-      // Add your test assertions here
-    });
+  tearDown(() {
+    // lock.dispose();
+  });
 
-    test('isLockAcquired', () {
-      // Test the isLockAcquired function
-      // Add your test assertions here
-    });
+  test('acquireLock', () {
+    // Test the acquireLock function
+    // Add your test assertions here
+  });
 
-    // Add more tests for other functions in windows_named_lock.dart
+  test('releaseLock', () {
+    // Test the releaseLock function
+    // Add your test assertions here
+  });
+
+  test('isLockAcquired', () {
+    // Test the isLockAcquired function
+    // Add your test assertions here
   });
 }
