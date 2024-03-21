@@ -1,9 +1,10 @@
 // ignore_for_file: non_constant_identifier_names, camel_case_types
 
 import 'dart:ffi';
-// import 'package:windows_foundation/src/types.dart';
+import 'package:win32/src/types.dart' show HANDLE;
+// /Users/tsavo/.pub-cache/hosted/pub.dev/win32-5.3.0/lib/src/types.dart
 
-final class HANDLE extends Opaque {}
+// final class HANDLE extends Opaque {}
 
 const WAIT_ABANDONED = 0x00000080;
 const WAIT_OBJECT_0 = 0x00000000;
