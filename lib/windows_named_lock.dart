@@ -1,11 +1,14 @@
 part of 'primitives.dart';
 
-class _WindowsNamedLock extends NamedLock<HANDLE> {
+class _WindowsNamedLock extends NamedLock<HANDLE, HANDLE> {
   // Memory Allocation in Bytes
   static const int _allocation = 8;
 
   @override
   late final Pointer<HANDLE> handle;
+
+  @override
+  late final HANDLE mutex_handle;
 
   static final _finalizer = Finalizer<Pointer<HANDLE>>((Pointer<HANDLE> ptr) {
     calloc.free(ptr);
@@ -18,7 +21,7 @@ class _WindowsNamedLock extends NamedLock<HANDLE> {
     final native_string = HString.fromString(name);
 
     // Create the named mutex with no security attributes, no initial owner, and a pointer to the name i.e. HSTRING
-    final mutex_handle = CreateMutexW(nullptr, 0, native_string.handle);
+    mutex_handle = CreateMutexW(nullptr, 0, native_string.handle);
 
     print('calloc.handle handle address: ${handle.address}');
     print('native_string handle: ${native_string.handle}');
@@ -39,46 +42,40 @@ class _WindowsNamedLock extends NamedLock<HANDLE> {
 
   @override
   bool acquire() {
-    // final result = WaitForSingleObject(handle, 0);
-    // if (result == WAIT_OBJECT_0 || result == WAIT_ABANDONED) {
-    //   return true;
-    // } else if (result == WAIT_TIMEOUT) {
-    //   return false;
-    // } else {
-    //   throw Exception('Failed to lock named lock');
-    // }
-    // TODO
-    throw UnimplementedError();
+    final result = WaitForSingleObject(mutex_handle, 0);
+    if (result == WAIT_OBJECT_0 || result == WAIT_ABANDONED) {
+      return true;
+    } else if (result == WAIT_TIMEOUT) {
+      return false;
+    } else {
+      throw Exception('Failed to lock named lock');
+    }
   }
 
   @override
   void lock() {
-    // final result = WaitForSingleObject(handle, INFINITE);
-    // if (result != WAIT_OBJECT_0 && result != WAIT_ABANDONED) {
-    //   throw Exception('Failed to lock named lock');
-    // }
-    // TODO: implement lock
-    throw UnimplementedError();
+    final result = WaitForSingleObject(mutex_handle, INFINITE);
+    if (result != WAIT_OBJECT_0 && result != WAIT_ABANDONED) {
+      throw Exception('${NamedLockErrors.lockFailed} [Name]: $name [Result]: ${result}');
+    }
   }
 
   @override
   void unlock() {
-    // if (ReleaseMutex(handle) == 0) {
-    //   throw Exception('Failed to unlock named lock');
-    // }
-    // TODO: implement unlock
-    throw UnimplementedError();
+    final int result = ReleaseMutex(mutex_handle);
+    result.isOdd || (throw Exception('${NamedLockErrors.unlockFailed} [Name]: $name [Result]: ${result}'));
   }
 
   @override
   void dispose() {
-    // TODO: implement _dispose
-    throw UnimplementedError();
+    final int result = CloseHandle(mutex_handle);
+    print(result);
+    result.isOdd || (throw Exception('${NamedLockErrors.disposeFailed} [Name]: $name [Result]: ${result}'));
   }
 
   @override
   String toString() => 'NamedLock(name: $name)';
 
   @override
-  int get _address => handle.address;
+  int get address => handle.address;
 }

@@ -5,7 +5,8 @@ enum NamedLockErrors {
   createFailed("Failed to create named lock:"),
   lockFailed("Failed to lock named lock:"),
   unlockFailed("Failed to unlock named lock:"),
-  wouldBlock("Named lock would block:");
+  wouldBlock("Named lock would block:"),
+  disposeFailed("Failed to close and dispose named lock:");
 
   // Constructor with a message for each error
   const NamedLockErrors(this.message);
