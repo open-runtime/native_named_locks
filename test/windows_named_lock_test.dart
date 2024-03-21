@@ -28,6 +28,9 @@ void main() {
 
       try {
         lock = NamedLock(name: invalid);
+        print(lock.name);
+        print(lock.handle.address);
+        print(lock.mutex_handle.address);
       } catch (e) {
         error = e;
         print(e);
