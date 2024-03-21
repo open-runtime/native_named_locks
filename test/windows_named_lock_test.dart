@@ -22,7 +22,7 @@ void main() {
       // Arrange
       const invalid = 'Invalid/\\Name';
 
-      var error;
+      Object? error;
       NamedLock? lock;
 
       try {
@@ -32,7 +32,7 @@ void main() {
         print(e);
       }
 
-      expect(error, isNotEmpty);
+      expect(error, isNotNull);
       expect(lock, isNull);
 
       // Act & Assert
