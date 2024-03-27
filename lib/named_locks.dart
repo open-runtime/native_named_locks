@@ -1,11 +1,12 @@
-import 'dart:async' show Future;
-import 'dart:collection';
+import 'dart:collection' show HashMap;
 import 'dart:io' show File, Platform;
-import 'package:native_synchronization/primitives.dart';
-import 'package:path/path.dart' show join;
-import 'package:runtime_native_named_locks/primitives.dart';
+import 'package:meta/meta.dart' show visibleForTesting;
+import 'package:native_synchronization/primitives.dart' show Mutex;
+import 'package:path/path.dart' show absolute, current, isAbsolute, join;
+import 'package:runtime_native_named_locks/primitives.dart' show NamedLock;
 
-import 'errors.dart' show NamedLockError;
+import 'package:runtime_native_named_locks/errors.dart' show NamedLockError;
+import 'package:runtime_native_named_locks/named_lock_guard.dart' show NamedLockGuard;
 
 /// Type alias to `Future<T>`.
 // typedef AsyncResult<T> = Future<T>;
@@ -14,11 +15,12 @@ import 'errors.dart' show NamedLockError;
 
 /// Cross-process lock that is identified by name.
 class NamedLocks {
-  static final Mutex OPENED_LOCKS_MUTEX = Mutex();
+  @visibleForTesting
+  static final Mutex _OPENED_LOCKS_MUTEX = Mutex();
 
+  @visibleForTesting
   static late final HashMap<String, WeakReference<NamedLockGuard>> _OPENED_LOCKS =
-      OPENED_LOCKS_MUTEX.runLocked<HashMap<String, WeakReference<NamedLockGuard>>>(
-          () => HashMap<String, WeakReference<NamedLockGuard>>());
+      HashMap<String, WeakReference<NamedLockGuard>>();
 
   /// Create/open a named lock.
   ///
@@ -28,46 +30,66 @@ class NamedLocks {
   ///
   /// If you want to specify the exact path, then use [NamedLock.withPath] - note .lock will not be appended
   static WeakReference<NamedLockGuard> create({required String name, bool nameIsUnixPath = false}) {
+    print(name);
+
     if (name.isEmpty) {
-      throw NamedLockError.emptyName.toString();
+      throw NamedLockError.emptyName;
     }
 
-    if (name.contains('\0') || name.contains('/') || name.contains('\\')) {
-      throw NamedLockError.invalidCharacter;
-    }
+    print('$name is valid in a basic sense.');
 
     late String identifier;
 
     if (Platform.isWindows) {
+      if (name.contains('\0') || name.contains('/') || name.contains('\\')) {
+        throw NamedLockError.invalidCharacter;
+      }
       identifier = join("Global\\{}", name);
     } else if (Platform.isMacOS || Platform.isLinux) {
-      // TODO ensure this doesnt conflict with creation of the lock file within unix_named_lock.dart
-      // If the name is a unix path we check if the file exists and if not we throw an error
-      nameIsUnixPath && (File(name).existsSync() || (throw NamedLockError.unixPathForNamedLockUnverified));
+      print('We are on a Unix-like system and the name is not a unix path and or the file exists synchronously.');
 
-      identifier = nameIsUnixPath ? File(name).path : join(Platform.environment['TMPDIR'] ?? '/tmp', '$name.lock');
+      identifier = nameIsUnixPath
+          ? (isAbsolute(name) ? File(name).path : File.fromUri(Uri.file(name, windows: Platform.isWindows)).path)
+          : join(Platform.environment['TMPDIR'] ?? '/tmp', '$name.lock');
+
+      print("We're on a unix-like system and the identifier is $identifier. and the name is $name");
     }
 
+    print("We're about to check if the lock already exists in the opened locks with a mutex.");
+
+    late final bool exists;
     // TODO ensure we actually to fail on existing locks
-    final bool exists = OPENED_LOCKS_MUTEX.runLocked(() => _OPENED_LOCKS.containsKey(name));
+    try {
+      exists = _OPENED_LOCKS_MUTEX.runLocked(() {
+        print('We are inside the mutex running as locked checking for contained key: $identifier');
+        print(NamedLocks._OPENED_LOCKS.containsKey(identifier));
+        return NamedLocks._OPENED_LOCKS.containsKey(identifier);
+      });
+    } catch (e) {
+      print('We failed to check if the lock already exists in the opened locks with a mutex.');
+      rethrow;
+    }
+
+    print('Does the lock already exist? $exists');
+
     !exists || (throw NamedLockError.alreadyExists);
+
+    print('The lock does not already exist and we are good to go with creation.');
 
     return NamedLocks._create(identifier: identifier);
   }
 
+  @visibleForTesting
   static WeakReference<NamedLockGuard> _create({required String identifier}) {
-    return OPENED_LOCKS_MUTEX.runLocked<WeakReference<NamedLockGuard>>(() => _OPENED_LOCKS.putIfAbsent(
-        identifier,
-        () => WeakReference<NamedLockGuard>(
-            NamedLockGuard(lock: NamedLock(identifier: identifier), identifier: identifier))));
-
-    // TODO: Implement a mechanism to ensure only one `RawNamedLock` exists
-    // for each name in each process, similar to the `OPENED_RAW_LOCKS` in Rust.
-    // return RawNamedLock(path);
+    return _OPENED_LOCKS_MUTEX.runLocked<WeakReference<NamedLockGuard>>(
+        () => _OPENED_LOCKS.putIfAbsent(identifier, () => WeakReference<NamedLockGuard>(
+            // File lock is created in the constructor of NamedLock here
+            NamedLockGuard(lock: NamedLock(identifier: identifier)))));
   }
 
+  @visibleForTesting
   static NamedLockGuard _get({required String identifier}) {
-    final WeakReference<NamedLockGuard>? guard = OPENED_LOCKS_MUTEX.runLocked<WeakReference<NamedLockGuard>?>(
+    final WeakReference<NamedLockGuard>? guard = _OPENED_LOCKS_MUTEX.runLocked<WeakReference<NamedLockGuard>?>(
         () => _OPENED_LOCKS.containsKey(identifier) ? _OPENED_LOCKS[identifier] : null);
 
     guard ?? (throw NamedLockError.attemptedToAccessUnknownLock);
@@ -106,7 +128,7 @@ class NamedLocks {
     guard.dispose() || (throw NamedLockError.disposeFailed);
 
     final WeakReference<NamedLockGuard>? removed =
-        OPENED_LOCKS_MUTEX.runLocked<WeakReference<NamedLockGuard>?>(() => _OPENED_LOCKS.remove(identifier));
+        _OPENED_LOCKS_MUTEX.runLocked<WeakReference<NamedLockGuard>?>(() => _OPENED_LOCKS.remove(identifier));
 
     return removed?.target?.disposed ?? (throw NamedLockError.disposeFailed);
   }

@@ -29,9 +29,6 @@ import 'package:stdlibc/stdlibc.dart'
         F_UNLCK,
         F_WRLCK,
         Flock,
-        LOCK_EX,
-        LOCK_NB,
-        LOCK_UN,
         O_CREAT,
         O_EXCL,
         O_RDWR,
@@ -79,44 +76,4 @@ sealed class NamedLock implements Finalizable {
 
   String toString() =>
       throw UnimplementedError("Class Member 'toString()' in Sealed Abstract Class 'NamedLock' is Unimplemented.");
-}
-
-class NamedLockGuard {
-  late final bool disposed;
-
-  final String identifier;
-
-  final NamedLock _lock;
-
-  final Mutex mutex = Mutex();
-
-  NamedLockGuard._({required NamedLock lock, required String this.identifier}) : _lock = lock;
-
-  factory NamedLockGuard({required NamedLock lock, required String identifier}) =>
-      NamedLockGuard._(lock: lock, identifier: identifier);
-
-  bool acquire() {
-    // TODO potentially ensure that the file/global namespace exists before acquiring?
-    return mutex.runLocked<bool>(() => _lock.acquire());
-  }
-
-  bool lock() {
-    // TODO potentially ensure that the file/global namespace exists before locking?
-    return mutex.runLocked(() => _lock.lock());
-  }
-
-  bool unlock() {
-    // TODO potentially ensure that the file/global namespace exists before unlocking?
-    return mutex.runLocked(() => _lock.unlock());
-  }
-
-  bool dispose() {
-    return disposed = mutex.runLocked(() {
-      final status = _lock.dispose();
-      File(identifier).deleteSync();
-      return status;
-    });
-  }
-
-  String toString() => 'NamedLockGuard(identifier: $identifier)';
 }
