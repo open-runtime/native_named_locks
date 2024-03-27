@@ -1,13 +1,15 @@
 part of 'primitives.dart';
 
-class _WindowsNamedLock extends NamedLock<HANDLE, HANDLE> {
+// class _WindowsNamedLockNameType extends NamedLockNameType<String> {
+//   _WindowsNamedLockNameType() : super._();
+// }
+
+class _WindowsNamedLock extends NamedLock {
+  late final Pointer<HANDLE> handle;
+
   // Memory Allocation in Bytes
   static const int _allocation = 8;
 
-  @override
-  late final Pointer<HANDLE> handle;
-
-  @override
   late final Pointer<HANDLE> mutex_handle;
 
   static final _finalizer = Finalizer<Pointer<HANDLE>>((Pointer<HANDLE> ptr) {
@@ -15,11 +17,10 @@ class _WindowsNamedLock extends NamedLock<HANDLE, HANDLE> {
     calloc.free(ptr);
   });
 
-  _WindowsNamedLock({required String name})
-      : handle = calloc.allocate(_WindowsNamedLock._allocation),
-        super._(name: name) {
+  _WindowsNamedLock({required String identifier}) : super._(identifier: identifier) {
+    handle = calloc.allocate(_WindowsNamedLock._allocation);
     // Create the native string
-    final native_string = HString.fromString(name);
+    final native_string = HString.fromString(identifier);
 
     // Create the named mutex with no security attributes, no initial owner, and a pointer to the name i.e. HSTRING
     mutex_handle = CreateMutexW(nullptr, 0, native_string.handle);
@@ -37,45 +38,54 @@ class _WindowsNamedLock extends NamedLock<HANDLE, HANDLE> {
     if (mutex_handle == nullptr) {
       int native_last_error = GetLastError();
       String? error_message = getRestrictedErrorDescription(native_last_error);
-      throw Exception('${NamedLockErrors.createFailed} [Code]: ${native_last_error} [Message]: ${error_message}');
+      throw Exception('${NamedLockError.createFailed} [Code]: ${native_last_error} [Message]: ${error_message}');
     }
   }
 
   @override
   bool acquire() {
-    final result = WaitForSingleObject(mutex_handle, 0);
-    if (result == WAIT_OBJECT_0 || result == WAIT_ABANDONED) {
-      return true;
-    } else if (result == WAIT_TIMEOUT) {
-      return false;
-    } else {
-      throw Exception('Failed to lock named lock');
-    }
+    final awaited = WaitForSingleObject(mutex_handle, 0);
+    return (awaited == WAIT_OBJECT_0 || awaited == WAIT_ABANDONED) ||
+        (awaited == WAIT_TIMEOUT &&
+                (throw Exception('${NamedLockError.wouldBlock} [Name]: $identifier [Result]: ${awaited}')) ||
+            (throw Exception('${NamedLockError.lockFailed} [Name]: $identifier [Result]: ${awaited}')));
+
+    // if (result == WAIT_OBJECT_0 || result == WAIT_ABANDONED) {
+    //   return true;
+    // } else if (result == WAIT_TIMEOUT) {
+    //   throw Exception('${NamedLockError.wouldBlock} [Name]: $identifier [Result]: ${result}');
+    // } else {
+    //   throw Exception('${NamedLockError.lockFailed} [Name]: $identifier [Result]: ${result}');
+    // }
   }
 
   @override
-  void lock() {
+  bool lock() {
     final result = WaitForSingleObject(mutex_handle, INFINITE);
-    if (result != WAIT_OBJECT_0 && result != WAIT_ABANDONED) {
-      throw Exception('${NamedLockErrors.lockFailed} [Name]: $name [Result]: ${result}');
-    }
+
+    return (result != WAIT_OBJECT_0 && result != WAIT_ABANDONED) ||
+        (throw Exception('${NamedLockError.lockFailed} [Name]: $identifier [Result]: ${result}'));
   }
 
   @override
-  void unlock() {
+  bool unlock() {
+    // return 0 or 1 for failure or success
     final int result = ReleaseMutex(mutex_handle);
-    result.isOdd || (throw Exception('${NamedLockErrors.unlockFailed} [Name]: $name [Result]: ${result}'));
+    // 0 is even and false/failed, 1 is odd and true/succeeded
+    return result.isOdd || (throw Exception('${NamedLockError.unlockFailed} [Name]: $identifier [Result]: ${result}'));
   }
 
   @override
-  void dispose() {
+  bool dispose() {
+    // return 0 or 1 for failure or success
     final int result = CloseHandle(mutex_handle);
-    print(result);
-    result.isOdd || (throw Exception('${NamedLockErrors.disposeFailed} [Name]: $name [Result]: ${result}'));
+    print('CloseHandle result: $result');
+    // 0 is even and false/failed, 1 is odd and true/succeeded
+    return result.isOdd || (throw Exception('${NamedLockError.disposeFailed} [Name]: $identifier [Result]: ${result}'));
   }
 
   @override
-  String toString() => 'NamedLock(name: $name)';
+  String toString() => 'NamedLock(name: $identifier)';
 
   @override
   int get address => handle.address;
