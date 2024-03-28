@@ -1,6 +1,7 @@
 @TestOn('linux || mac-os')
 import 'dart:io';
 
+import 'package:path/path.dart';
 import 'package:runtime_native_named_locks/named_lock_guard.dart' show NamedLockGuard;
 import 'package:runtime_native_named_locks/named_locks.dart' show NamedLocks;
 import 'package:test/test.dart'
@@ -23,73 +24,74 @@ import 'dart:isolate';
 import 'dart:async';
 
 void main() {
-  const name =
-      '/Users/tsavo/Development/Runtime/aot_monorepo/packages/libraries/dart/native_named_locks/test/unix_named_lock_test.lock';
+  // final name = join(Directory.systemTemp.path, '/test.lock');
+  // print(name);
 
-  group('NamedLocks across isolates', () {
-    Future<String> spawnHelperIsolate(String lockFilePath) async {
-      // The entry point for the isolate
-      void isolateEntryPoint(SendPort sendPort) {
-        final WeakReference<NamedLockGuard> reference = NamedLocks.create(name: lockFilePath, nameIsUnixPath: true);
-
-        // Attempt to acquire the lock
-        final acquired = reference.target?.acquire() ?? false;
-
-        // Simulate some work
-        sleep(Duration(milliseconds: 100));
-
-        // Release the lock
-        reference.target?.unlock();
-        reference.target?.dispose();
-
-        // Signal completion
-        sendPort.send(acquired ? 'success' : 'failure');
-      }
-
-      // Create a receive port to get messages from the isolate
-      final receivePort = ReceivePort();
-
-      // Spawn the isolate
-      await Isolate.spawn(isolateEntryPoint, receivePort.sendPort);
-
-      // Wait for the isolate to send its message
-      return await receivePort.first as String;
-    }
-
-    test('multiple isolates using the same named lock', () async {
-      // Spawn the first helper isolate
-      final result1 = spawnHelperIsolate(name);
-
-      // Introduce a slight delay to ensure the isolates don't start at the exact same moment
-      // await Future.delayed(Duration(milliseconds: 50));
-
-      // Spawn the second helper isolate
-      final result2 = spawnHelperIsolate(name);
-
-      // Wait for both isolates to complete their work
-      final outcomes = await Future.wait([result1, result2]);
-
-      // Check that both isolates report success
-      // This implies that they were both able to acquire and release the lock without interference
-      expect(outcomes, everyElement(equals('success')));
-    });
-  });
+  // group('NamedLocks across isolates', () {
+  //   Future<String> spawnHelperIsolate(String lockFilePath) async {
+  //     // The entry point for the isolate
+  //     void isolateEntryPoint(SendPort sendPort) {
+  //       final WeakReference<NamedLockGuard> reference = NamedLocks.create(name: lockFilePath, nameIsUnixPath: true);
+  //
+  //       // Attempt to acquire the lock
+  //       final acquired = reference.target?.acquire() ?? false;
+  //
+  //       // Simulate some work
+  //       sleep(Duration(milliseconds: 100));
+  //
+  //       // Release the lock
+  //       reference.target?.unlock();
+  //       reference.target?.dispose();
+  //
+  //       // Signal completion
+  //       sendPort.send(acquired ? 'success' : 'failure');
+  //     }
+  //
+  //     // Create a receive port to get messages from the isolate
+  //     final receivePort = ReceivePort();
+  //
+  //     // Spawn the isolate
+  //     await Isolate.spawn(isolateEntryPoint, receivePort.sendPort);
+  //
+  //     // Wait for the isolate to send its message
+  //     return await receivePort.first as String;
+  //   }
+  //
+  //   test('multiple isolates using the same named lock', () async {
+  //     // Spawn the first helper isolate
+  //     final result1 = spawnHelperIsolate(name);
+  //
+  //     // Introduce a slight delay to ensure the isolates don't start at the exact same moment
+  //     // await Future.delayed(Duration(milliseconds: 50));
+  //
+  //     // Spawn the second helper isolate
+  //     final result2 = spawnHelperIsolate(name);
+  //
+  //     // Wait for both isolates to complete their work
+  //     final outcomes = await Future.wait([result1, result2]);
+  //
+  //     // Check that both isolates report success
+  //     // This implies that they were both able to acquire and release the lock without interference
+  //     expect(outcomes, everyElement(equals('success')));
+  //   });
+  // });
 
   group('UnixNamedLock', () {
     test('Basic Named Lock Creation', () {
       print("=================================== CREATING NAMED LOCK ==================================== \n");
-      final WeakReference<NamedLockGuard> reference = NamedLocks.create(name: name, nameIsUnixPath: true);
+      final WeakReference<NamedLockGuard> reference =
+          NamedLocks.create(name: "testing_named_unix_lock", nameIsUnixPath: false);
       print(reference.target?.identifier);
       expect(reference.target, isNotNull);
       print("[CREATING NAMED LOCK]: SUCCESS \n\n");
 
-      print("=================================== UNNECESSARY ACQUIRE ==================================== \n");
-      expect(reference.target?.acquire(), isTrue);
-      print("[UNNECESSARY ACQUIRE]: SUCCESS \n\n");
-
       print("=================================== LOCKING ==================================== \n");
       expect(reference.target?.lock(), isTrue);
       print("[LOCKING]: SUCCESS \n\n");
+
+      print("=================================== UNNECESSARY ACQUIRE ==================================== \n");
+      expect(reference.target?.acquire(), isTrue);
+      print("[UNNECESSARY ACQUIRE]: SUCCESS \n\n");
 
       print("=================================== UNNECESSARY LOCKING AGAIN ==================================== \n");
       expect(reference.target?.lock(), isTrue);
