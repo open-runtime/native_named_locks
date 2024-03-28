@@ -36,14 +36,24 @@ class NamedLockGuard {
   // Not sure if we should even give people the option to not delete the lock file?
   // TODO: Implement a way to know how many locks are currently held by the process
   bool dispose(/*{bool delete = true}*/) {
-    bool delete = true;
     try {
       return disposed = _mutex.runLocked(() {
         final status = _lock.dispose();
-        return (delete && (File(_lock.identifier)..deleteSync()).existsSync()) || status;
+        bool deleted = false;
+
+        try {
+          deleted = !(File(_lock.identifier)..deleteSync()).existsSync();
+        } catch (e) {
+          //   Handle delete file error if it was deleted by another process
+          if (e.toString().contains("PathNotFoundException: Cannot delete file")) {
+            deleted = true;
+          }
+        }
+
+        return deleted || status;
       });
     } catch (e) {
-      e.toString().contains("LateInitializationError: Field 'disposed' has already been initialized.");
+      if (e.toString().contains("LateInitializationError: Field 'disposed' has already been initialized.")) ;
       throw Exception('Lock has already been disposed by the current process: [IDENTIFIER] ${_lock.identifier}');
     }
   }

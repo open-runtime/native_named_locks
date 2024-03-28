@@ -1,5 +1,6 @@
 @TestOn('linux || mac-os')
 import 'dart:io';
+import 'dart:math';
 
 import 'package:runtime_native_named_locks/errors.dart';
 import 'package:stack_trace/stack_trace.dart' show Frame;
@@ -86,7 +87,7 @@ void main() {
         final acquired = reference.target?.acquire() ?? false;
 
         // Simulate some work
-        sleep(Duration(milliseconds: 100));
+        sleep(Duration(milliseconds: Random().nextInt(500)));
 
         // Release the lock
         reference.target?.unlock();
