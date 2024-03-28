@@ -24,8 +24,52 @@ import 'dart:isolate';
 import 'dart:async';
 
 void main() {
-  final name = join(Directory.systemTemp.path, '/test.lock');
-  print(name);
+  // final name = join(Directory.systemTemp.path, '/test.lock');
+  final name = 'testing_named_unix_lock';
+
+  group('UnixNamedLock', () {
+    test('Basic Named Lock Creation', () {
+      print("=================================== CREATING NAMED LOCK ==================================== \n");
+      final WeakReference<NamedLockGuard> reference =
+          NamedLocks.create(name: "testing_named_unix_lock", nameIsUnixPath: false);
+      print(reference.target?.identifier);
+      expect(reference.target, isNotNull);
+      print("[CREATING NAMED LOCK]: SUCCESS \n\n");
+
+      print("=================================== LOCKING ==================================== \n");
+      expect(reference.target?.lock(), isTrue);
+      print("[LOCKING]: SUCCESS \n\n");
+
+      print("=================================== UNNECESSARY ACQUIRE ==================================== \n");
+      expect(reference.target?.acquire(), isTrue);
+      print("[UNNECESSARY ACQUIRE]: SUCCESS \n\n");
+
+      print("=================================== UNNECESSARY LOCKING AGAIN ==================================== \n");
+      expect(reference.target?.lock(), isTrue);
+      print("[UNNECESSARY LOCKING AGAIN]: SUCCESS \n\n");
+
+      print("=================================== UNLOCKING ==================================== \n");
+      expect(reference.target?.unlock(), isTrue);
+      print("[UNLOCKING AGAIN]: SUCCESS \n\n");
+
+      print("=================================== UNNECESSARY UNLOCKING AGAIN ==================================== \n");
+      expect(reference.target?.unlock(), isTrue);
+      print("[UNNECESSARY UNLOCKING AGAIN]: SUCCESS \n\n");
+
+      print("=================================== DISPOSING ==================================== \n");
+      // Very few cases where you'd want to not delete the lock file...at least one process must delete it if all others are
+      // disposing without delete... this is key so that the lock file is not left behind and others can create\acquire the lock
+      expect(reference.target?.dispose(), isTrue);
+      print("[DISPOSING]: SUCCESS \n\n");
+
+      print("=================================== UNNECESSARY DISPOSING AGAIN ==================================== \n");
+      expect(
+          () => reference.target?.dispose(),
+          throwsA(isA<Exception>().having(
+              (e) => e.toString(), 'description', contains('Lock has already been disposed by the current process'))));
+      print("[UNNECESSARY DISPOSING AGAIN]: SUCCESS \n\n");
+    });
+  });
 
   group('NamedLocks across isolates', () {
     Future<String> spawnHelperIsolate(String lockFilePath) async {
@@ -73,50 +117,6 @@ void main() {
       // Check that both isolates report success
       // This implies that they were both able to acquire and release the lock without interference
       expect(outcomes, everyElement(equals('success')));
-    });
-  });
-
-  group('UnixNamedLock', () {
-    test('Basic Named Lock Creation', () {
-      print("=================================== CREATING NAMED LOCK ==================================== \n");
-      final WeakReference<NamedLockGuard> reference =
-          NamedLocks.create(name: "testing_named_unix_lock", nameIsUnixPath: false);
-      print(reference.target?.identifier);
-      expect(reference.target, isNotNull);
-      print("[CREATING NAMED LOCK]: SUCCESS \n\n");
-
-      print("=================================== LOCKING ==================================== \n");
-      expect(reference.target?.lock(), isTrue);
-      print("[LOCKING]: SUCCESS \n\n");
-
-      print("=================================== UNNECESSARY ACQUIRE ==================================== \n");
-      expect(reference.target?.acquire(), isTrue);
-      print("[UNNECESSARY ACQUIRE]: SUCCESS \n\n");
-
-      print("=================================== UNNECESSARY LOCKING AGAIN ==================================== \n");
-      expect(reference.target?.lock(), isTrue);
-      print("[UNNECESSARY LOCKING AGAIN]: SUCCESS \n\n");
-
-      print("=================================== UNLOCKING ==================================== \n");
-      expect(reference.target?.unlock(), isTrue);
-      print("[UNLOCKING AGAIN]: SUCCESS \n\n");
-
-      print("=================================== UNNECESSARY UNLOCKING AGAIN ==================================== \n");
-      expect(reference.target?.unlock(), isTrue);
-      print("[UNNECESSARY UNLOCKING AGAIN]: SUCCESS \n\n");
-
-      print("=================================== DISPOSING ==================================== \n");
-      // Very few cases where you'd want to not delete the lock file...at least one process must delete it if all others are
-      // disposing without delete... this is key so that the lock file is not left behind and others can create\acquire the lock
-      expect(reference.target?.dispose(), isTrue);
-      print("[DISPOSING]: SUCCESS \n\n");
-
-      print("=================================== UNNECESSARY DISPOSING AGAIN ==================================== \n");
-      expect(
-          () => reference.target?.dispose(),
-          throwsA(isA<Exception>().having(
-              (e) => e.toString(), 'description', contains('Lock has already been disposed by the current process'))));
-      print("[UNNECESSARY DISPOSING AGAIN]: SUCCESS \n\n");
     });
   });
 }
