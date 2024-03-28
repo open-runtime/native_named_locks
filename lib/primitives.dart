@@ -1,7 +1,7 @@
 library;
 
 import 'dart:ffi' show Finalizable, NativeType, Pointer, nullptr;
-import 'dart:io' show File, FileMode, FileSystemException, OSError, Platform;
+import 'dart:io' show File, FileMode, FileSystemException, OSError, Platform, sleep;
 import 'package:ffi/ffi.dart' show calloc;
 import 'package:meta/meta.dart';
 import 'package:native_synchronization/primitives.dart' show Mutex;
@@ -24,7 +24,9 @@ import 'package:stdlibc/stdlibc.dart'
         EDEADLK,
         EINTR,
         EWOULDBLOCK,
+        FD_CLOEXEC,
         F_GETFL,
+        F_SETFD,
         F_SETLK,
         F_UNLCK,
         F_WRLCK,
@@ -34,8 +36,10 @@ import 'package:stdlibc/stdlibc.dart'
         O_RDWR,
         SEEK_SET,
         close,
+        errno,
         fcntl,
-        open;
+        open,
+        strerror;
 
 import 'package:windows_foundation/internal.dart' show HString, getRestrictedErrorDescription;
 

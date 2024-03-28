@@ -15,6 +15,8 @@ import 'package:runtime_native_named_locks/named_lock_guard.dart' show NamedLock
 
 /// Cross-process lock that is identified by name.
 class NamedLocks {
+  // TODO implement way to to keep a lock count across isolates.
+
   @visibleForTesting
   static final Mutex _OPENED_LOCKS_MUTEX = Mutex();
 
@@ -70,11 +72,12 @@ class NamedLocks {
       rethrow;
     }
 
+    // In this instance we are checking if the lock is registered in the process memory. The lock may exist as a file.
     print('Does the lock already exist? $exists');
 
     !exists || (throw NamedLockError.alreadyExists);
 
-    print('The lock does not already exist and we are good to go with creation.');
+    print('The lock does not already exist in memory and we are good to go with creation.');
 
     return NamedLocks._create(identifier: identifier);
   }

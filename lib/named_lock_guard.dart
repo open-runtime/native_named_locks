@@ -17,6 +17,7 @@ class NamedLockGuard {
   factory NamedLockGuard({required NamedLock lock}) => NamedLockGuard._(lock: lock);
 
   bool acquire() {
+    // TODO use native shared mmap to share the number of processes waiting on the lock?
     // TODO potentially ensure that the file/global namespace exists before acquiring?
     return _mutex.runLocked<bool>(() => _lock.acquire());
   }
@@ -26,17 +27,25 @@ class NamedLockGuard {
     return _mutex.runLocked(() => _lock.lock());
   }
 
+  // TODO: Implement a something like an auto dispose? This may cause issues for other locks calling dispose as well as the lock file being deleted and we'd need to handle the deleteSync error if the file doesn't exist
   bool unlock() {
     // TODO potentially ensure that the file/global namespace exists before unlocking?
     return _mutex.runLocked(() => _lock.unlock());
   }
 
-  bool dispose() {
-    return disposed = _mutex.runLocked(() {
-      final status = _lock.dispose();
-      File(_lock.identifier).deleteSync();
-      return status;
-    });
+  // Not sure if we should even give people the option to not delete the lock file?
+  // TODO: Implement a way to know how many locks are currently held by the process
+  bool dispose(/*{bool delete = true}*/) {
+    bool delete = true;
+    try {
+      return disposed = _mutex.runLocked(() {
+        final status = _lock.dispose();
+        return (delete && (File(_lock.identifier)..deleteSync()).existsSync()) || status;
+      });
+    } catch (e) {
+      e.toString().contains("LateInitializationError: Field 'disposed' has already been initialized.");
+      throw Exception('Lock has already been disposed by the current process: [IDENTIFIER] ${_lock.identifier}');
+    }
   }
 
   String toString() => 'NamedLockGuard(identifier: ${_lock.identifier})';

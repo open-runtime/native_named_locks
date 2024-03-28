@@ -42,6 +42,7 @@ class _WindowsNamedLock extends NamedLock {
     }
   }
 
+  // TODO add interval parameter?
   @override
   bool acquire() {
     final awaited = WaitForSingleObject(mutex_handle, 0);
