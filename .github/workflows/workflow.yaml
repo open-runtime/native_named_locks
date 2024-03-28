@@ -4,6 +4,8 @@ on:
   push:
     branches:
       - aot_monorepo_compat
+  workflow_dispatch:
+
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -20,45 +22,45 @@ jobs:
         config:
           - {
             platforms: [
-#              {
-#                runner: macos-13-xlarge,
-#                refined_matrix: macos_apple_silicon,
-#                name: macOS (Apple Silicon),
-#                system_information: {
-#                  operating_system_family: macos,
-#                  kernel_architecture: arm64,
-#                  kernel_family: unix
-#                },
-#                architecture: {
-#                  dart: arm64,
-#                }
-#              },
-#              {
-#                runner: macos-13-large,
-#                refined_matrix: macos_intel,
-#                name: macOS (Intel),
-#                system_information: {
-#                  operating_system_family: macos,
-#                  kernel_architecture: x86_64,
-#                  kernel_family: unix
-#                },
-#                architecture: {
-#                  dart: x64,
-#                }
-#              },
-#              {
-#                runner: aot-linux-runner,
-#                refined_matrix: ubuntu,
-#                name: Ubuntu,
-#                system_information: {
-#                  operating_system_family: linux,
-#                  kernel_architecture: x86_64,
-#                  kernel_family: unix
-#                },
-#                architecture: {
-#                  dart: x64,
-#                }
-#              },
+              {
+                runner: macos-13-xlarge,
+                refined_matrix: macos_apple_silicon,
+                name: macOS (Apple Silicon),
+                system_information: {
+                  operating_system_family: macos,
+                  kernel_architecture: arm64,
+                  kernel_family: unix
+                },
+                architecture: {
+                  dart: arm64,
+                }
+              },
+              {
+                runner: macos-13-large,
+                refined_matrix: macos_intel,
+                name: macOS (Intel),
+                system_information: {
+                  operating_system_family: macos,
+                  kernel_architecture: x86_64,
+                  kernel_family: unix
+                },
+                architecture: {
+                  dart: x64,
+                }
+              },
+              {
+                runner: aot-linux-runner,
+                refined_matrix: ubuntu,
+                name: Ubuntu,
+                system_information: {
+                  operating_system_family: linux,
+                  kernel_architecture: x86_64,
+                  kernel_family: unix
+                },
+                architecture: {
+                  dart: x64,
+                }
+              },
               {
                 runner: aot-windows-x64-runner,
                 refined_matrix: windows,
