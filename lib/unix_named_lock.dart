@@ -27,14 +27,14 @@ class _UnixNamedLock extends NamedLock {
   }
 
   @override
-  bool acquire({int MAX_ATTEMPTS = 1000, Duration INTERVAL = const Duration(milliseconds: 50)}) {
+  bool acquire({int MAX_ATTEMPTS = 100, Duration INTERVAL = const Duration(milliseconds: 50)}) {
     !locked && !acquired
         ? _acquire(MAX_ATTEMPTS: MAX_ATTEMPTS, INTERVAL: INTERVAL)
         : print('[WARNING] Process has already acquired NamedLock: $identifier.');
     return acquired && lock();
   }
 
-  bool _acquire({int MAX_ATTEMPTS = 1000, Duration INTERVAL = const Duration(milliseconds: 50)}) {
+  bool _acquire({int MAX_ATTEMPTS = 100, Duration INTERVAL = const Duration(milliseconds: 50)}) {
     // TODO How many attempts should we make to open the file? This is similar to the windows implementation WaitForSingleObject(mutex_handle, 0) where the second parameter is timeout in milliseconds.
     int _fd = -1;
     int _MAX_ATTEMPTS = MAX_ATTEMPTS;
@@ -51,7 +51,7 @@ class _UnixNamedLock extends NamedLock {
         if (fd.isNegative) {
           // Failed to open the file, possibly because it already exists or due to permissions
           print(
-              'Failed to open the file exclusively: $fd from `open(identifier, flags: O_CREAT | O_RDWR)`: ${strerror(errno)} blocking execution and retrying in 5 seconds.');
+              'Failed to open the file exclusively: $fd from `open(identifier, flags: O_CREAT | O_RDWR)`: ${strerror(errno)} blocking execution and retrying in ${INTERVAL.inMilliseconds.toString()} Milliseconds.');
 
           sleep(INTERVAL);
         } else {
