@@ -25,3 +25,7 @@ doc/api/
 
 .flutter-plugins
 .flutter-plugins-dependencies
+lib/c/print_ocreat
+lib/c/semaphore
+lib/c/print_ocreat.c
+lib/c/semaphore.c
