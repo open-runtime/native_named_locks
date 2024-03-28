@@ -1,8 +1,11 @@
 @TestOn('windows')
 
+import 'package:runtime_native_named_locks/named_lock_guard.dart';
+import 'package:runtime_native_named_locks/named_locks.dart';
 import 'package:runtime_native_named_locks/primitives.dart' show NamedLock;
 import 'package:runtime_native_named_locks/src/bindings/windows.dart' show GetLastError;
-import 'package:test/test.dart' show TestOn, equals, expect, group, isNonZero, isNotNull, isNull, tearDown, test;
+import 'package:test/test.dart'
+    show TestOn, contains, equals, expect, group, isA, isNonZero, isNotNull, isNull, isTrue, tearDown, test, throwsA;
 import 'package:windows_foundation/internal.dart' show getRestrictedErrorDescription;
 
 void main() {
@@ -57,6 +60,44 @@ void main() {
       //     contains(NamedLockErrors.createFailed.toString()),
       //   )),
       // );
+    });
+  }, skip: true);
+
+  group('UnixNamedLock', () {
+    final String name = 'testing_of_named_lock';
+
+    test('Basic Named Lock Creation and Functionality', () {
+      print("=================================== CREATING NAMED LOCK ==================================== \n");
+      final WeakReference<NamedLockGuard> reference = NamedLocks.create(name: name, nameIsUnixPath: true);
+      print(reference.target?.identifier);
+      expect(reference.target, isNotNull);
+      print("[CREATING NAMED LOCK]: SUCCESS \n\n");
+
+      print("=================================== LOCKING ==================================== \n");
+      expect(reference.target?.lock(), isTrue);
+      print("[LOCKING]: SUCCESS \n\n");
+
+      print("=================================== UNNECESSARY ACQUIRE ==================================== \n");
+      expect(reference.target?.acquire(), isTrue);
+      print("[UNNECESSARY ACQUIRE]: SUCCESS \n\n");
+
+      print("=================================== UNNECESSARY LOCKING AGAIN ==================================== \n");
+      expect(reference.target?.lock(), isTrue);
+      print("[UNNECESSARY LOCKING AGAIN]: SUCCESS \n\n");
+
+      print("=================================== UNLOCKING ==================================== \n");
+      expect(reference.target?.unlock(), isTrue);
+      print("[UNLOCKING AGAIN]: SUCCESS \n\n");
+
+      print("=================================== UNNECESSARY UNLOCKING AGAIN ==================================== \n");
+      expect(reference.target?.unlock(), isTrue);
+      print("[UNNECESSARY UNLOCKING AGAIN]: SUCCESS \n\n");
+
+      print("=================================== DISPOSING ==================================== \n");
+      // Very few cases where you'd want to not delete the lock file...at least one process must delete it if all others are
+      // disposing without delete... this is key so that the lock file is not left behind and others can create\acquire the lock
+      expect(reference.target?.dispose(), isTrue);
+      print("[DISPOSING]: SUCCESS \n\n");
     });
   });
 

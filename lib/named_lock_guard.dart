@@ -1,4 +1,4 @@
-import 'dart:io' show File;
+import 'dart:io' show File, Platform;
 import 'package:meta/meta.dart';
 import 'package:native_synchronization/primitives.dart' show Mutex;
 import 'package:runtime_native_named_locks/primitives.dart' show NamedLock;
@@ -42,7 +42,7 @@ class NamedLockGuard {
         bool deleted = false;
 
         try {
-          deleted = !(File(_lock.identifier)..deleteSync()).existsSync();
+          deleted = (Platform.isWindows || !((File(_lock.identifier)..deleteSync()).existsSync()));
         } catch (e) {
           //   Handle delete file error if it was deleted by another process
           if (e.toString().contains("PathNotFoundException: Cannot delete file")) {
