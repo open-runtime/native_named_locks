@@ -1,7 +1,9 @@
 @TestOn('linux || mac-os')
 import 'dart:io';
 
-import 'package:path/path.dart' show join;
+import 'package:runtime_native_named_locks/errors.dart';
+import 'package:stack_trace/stack_trace.dart' show Frame;
+import 'package:path/path.dart' show dirname, join;
 import 'package:runtime_native_named_locks/named_lock_guard.dart' show NamedLockGuard;
 import 'package:runtime_native_named_locks/named_locks.dart' show NamedLocks;
 import 'package:test/test.dart'
@@ -24,14 +26,15 @@ import 'dart:isolate';
 import 'dart:async';
 
 void main() {
-  // final name = join(Directory.systemTemp.path, '/test.lock');
-  final name = 'testing_named_unix_lock';
+  // final String name = join(dirname(Frame.caller(0).uri.toFilePath()), 'testing_named_unix_locks.lock');
+  // final name = '/testing_named_unix_lock';
 
   group('UnixNamedLock', () {
-    test('Basic Named Lock Creation', () {
+    final String name = join(dirname(Frame.caller(0).uri.toFilePath()), 'testing_named_unix_locks.lock');
+
+    test('Basic Named Lock Creation and Functionality', () {
       print("=================================== CREATING NAMED LOCK ==================================== \n");
-      final WeakReference<NamedLockGuard> reference =
-          NamedLocks.create(name: "testing_named_unix_lock", nameIsUnixPath: false);
+      final WeakReference<NamedLockGuard> reference = NamedLocks.create(name: name, nameIsUnixPath: true);
       print(reference.target?.identifier);
       expect(reference.target, isNotNull);
       print("[CREATING NAMED LOCK]: SUCCESS \n\n");
@@ -72,6 +75,8 @@ void main() {
   });
 
   group('NamedLocks across isolates', () {
+    final String name = join(dirname(Frame.caller(0).uri.toFilePath()), 'testing_named_unix_locks.lock');
+
     Future<String> spawnHelperIsolate(String lockFilePath) async {
       // The entry point for the isolate
       void isolateEntryPoint(SendPort sendPort) {
@@ -104,15 +109,12 @@ void main() {
     test('multiple isolates using the same named lock', () async {
       // Spawn the first helper isolate
       final result1 = spawnHelperIsolate(name);
-
-      // Introduce a slight delay to ensure the isolates don't start at the exact same moment
-      // await Future.delayed(Duration(milliseconds: 50));
-
-      // Spawn the second helper isolate
       final result2 = spawnHelperIsolate(name);
+      final result3 = spawnHelperIsolate(name);
+      final result4 = spawnHelperIsolate(name);
 
       // Wait for both isolates to complete their work
-      final outcomes = await Future.wait([result1, result2]);
+      final outcomes = await Future.wait([result1, result2, result3, result4]);
 
       // Check that both isolates report success
       // This implies that they were both able to acquire and release the lock without interference
