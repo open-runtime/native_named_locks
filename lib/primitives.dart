@@ -1,29 +1,25 @@
 library;
 
-import 'dart:ffi' show Finalizable, NativeType, Pointer, nullptr;
-import 'dart:io' show File, FileMode, FileSystemException, OSError, Platform, sleep;
+import 'dart:ffi' show Finalizable, Pointer;
+import 'dart:io' show File, Platform, sleep;
 import 'package:ffi/ffi.dart' show calloc;
-import 'package:meta/meta.dart';
-import 'package:native_synchronization/primitives.dart' show Mutex;
-import 'package:runtime_native_named_locks/errors.dart' show NamedLockError;
-import 'src/bindings/windows.dart'
-    show
-        CloseHandle,
-        CreateMutexW,
-        GetLastError,
-        INFINITE,
-        ReleaseMutex,
-        WAIT_ABANDONED,
-        WAIT_OBJECT_0,
-        WAIT_TIMEOUT,
-        WaitForSingleObject;
+// import 'package:meta/meta.dart';
+// import 'package:native_synchronization/primitives.dart' show Mutex;
+import 'package:path/path.dart' show absolute, join, normalize, split;
+// import 'package:runtime_native_named_locks/errors.dart' show NamedLockError;
+import 'package:runtime_native_named_locks/utils.dart';
+import 'package:win32/win32.dart';
+// import 'src/bindings/windows.dart'
+//     show
+//         CreateMutexW,
+//         ReleaseMutex,
+//         WAIT_ABANDONED,
+//         WAIT_OBJECT_0,
+//         WAIT_TIMEOUT;
 
 import 'package:win32/src/types.dart' show HANDLE;
 import 'package:stdlibc/stdlibc.dart'
     show
-        EDEADLK,
-        EINTR,
-        EWOULDBLOCK,
         FD_CLOEXEC,
         F_GETFL,
         F_SETFD,
@@ -32,7 +28,6 @@ import 'package:stdlibc/stdlibc.dart'
         F_WRLCK,
         Flock,
         O_CREAT,
-        O_EXCL,
         O_RDWR,
         SEEK_SET,
         close,
@@ -41,7 +36,8 @@ import 'package:stdlibc/stdlibc.dart'
         open,
         strerror;
 
-import 'package:windows_foundation/internal.dart' show HString, getRestrictedErrorDescription;
+// import 'package:windows_foundation/internal.dart'
+//     show BoolConversions, HString, IPropertyValue, getRestrictedErrorDescription;
 
 part 'unix_named_lock.dart';
 
@@ -66,7 +62,7 @@ sealed class NamedLock implements Finalizable {
   factory NamedLock({required String identifier}) =>
       Platform.isWindows ? _WindowsNamedLock(identifier: identifier) : _UnixNamedLock(identifier: identifier);
 
-  bool acquire() =>
+  bool acquire({int MAX_ATTEMPTS = 100, Duration INTERVAL = const Duration(milliseconds: 50)}) =>
       throw UnimplementedError("Class Member 'bool acquire()' in Sealed Abstract Class 'NamedLock' is Unimplemented.");
 
   bool lock() =>

@@ -2,7 +2,7 @@ import 'dart:collection' show HashMap;
 import 'dart:io' show File, Platform;
 import 'package:meta/meta.dart' show visibleForTesting;
 import 'package:native_synchronization/primitives.dart' show Mutex;
-import 'package:path/path.dart' show absolute, current, isAbsolute, join;
+import 'package:path/path.dart' show isAbsolute, join, normalize;
 import 'package:runtime_native_named_locks/primitives.dart' show NamedLock;
 
 import 'package:runtime_native_named_locks/errors.dart' show NamedLockError;
@@ -31,14 +31,10 @@ class NamedLocks {
   /// if `TMPDIR` environment variable is not set.
   ///
   /// If you want to specify the exact path, then use [NamedLock.withPath] - note .lock will not be appended
-  static WeakReference<NamedLockGuard> create({required String name, bool nameIsUnixPath = false}) {
-    print(name);
+  static WeakReference<NamedLockGuard> create({required String name, bool? nameIsUnixPath}) {
+    //  TODO verify that if name is a unix path that it is a valid path
 
-    if (name.isEmpty) {
-      throw NamedLockError.emptyName;
-    }
-
-    print('$name is valid in a basic sense.');
+    !(name.isEmpty) || (throw NamedLockError.emptyName);
 
     late String identifier;
 
@@ -50,9 +46,9 @@ class NamedLocks {
     } else if (Platform.isMacOS || Platform.isLinux) {
       print('We are on a Unix-like system and the name is not a unix path and or the file exists synchronously.');
 
-      identifier = nameIsUnixPath
-          ? (isAbsolute(name) ? File(name).path : File.fromUri(Uri.file(name, windows: Platform.isWindows)).path)
-          : join(Platform.environment['TMPDIR'] ?? '/tmp', '$name.lock');
+      identifier = nameIsUnixPath is bool && nameIsUnixPath
+          ? (isAbsolute(name) ? File(name).path : File.fromUri(Uri.file(name)).path)
+          : normalize(join(Platform.environment['TMPDIR'] ?? '/tmp', '$name.lock'));
 
       print("We're on a unix-like system and the identifier is $identifier. and the name is $name");
     }
@@ -106,32 +102,37 @@ class NamedLocks {
   /// If it is already locked, an exception will be thrown.
   static NamedLockGuard acquire({required String identifier}) {
     final NamedLockGuard guard = _get(identifier: identifier);
-
-    final acquired = guard.acquire();
-
-    acquired || (throw NamedLockError.lockFailed);
-
-    return guard;
+    return _OPENED_LOCKS_MUTEX.runLocked<NamedLockGuard>(() {
+      final acquired = guard.acquire();
+      acquired || (throw NamedLockError.lockFailed);
+      return guard;
+    });
   }
 
   /// Lock named lock.
   static NamedLockGuard lock({required String identifier}) {
-    return _get(identifier: identifier)..lock();
+    final NamedLockGuard guard = _get(identifier: identifier);
+    return _OPENED_LOCKS_MUTEX.runLocked<NamedLockGuard>(() {
+      return guard..lock();
+    });
   }
 
   /// Unlock named lock
   static NamedLockGuard unlock({required String identifier}) {
-    return _get(identifier: identifier)..unlock();
+    final NamedLockGuard guard = _get(identifier: identifier);
+    return _OPENED_LOCKS_MUTEX.runLocked<NamedLockGuard>(() {
+      return guard..unlock();
+    });
   }
 
   /// disposes named lock & named lock guard and removes it from the opened locks.
   static bool dispose({required String identifier}) {
     final NamedLockGuard guard = _get(identifier: identifier);
 
-    guard.dispose() || (throw NamedLockError.disposeFailed);
-
-    final WeakReference<NamedLockGuard>? removed =
-        _OPENED_LOCKS_MUTEX.runLocked<WeakReference<NamedLockGuard>?>(() => _OPENED_LOCKS.remove(identifier));
+    final WeakReference<NamedLockGuard>? removed = _OPENED_LOCKS_MUTEX.runLocked<WeakReference<NamedLockGuard>?>(() {
+      guard.dispose() || (throw NamedLockError.disposeFailed);
+      return _OPENED_LOCKS.remove(identifier);
+    });
 
     return removed?.target?.disposed ?? (throw NamedLockError.disposeFailed);
   }

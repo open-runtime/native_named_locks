@@ -7,7 +7,7 @@ class NamedLockError extends Error {
 
   // Static final fields representing each error
   static final NamedLockError invalidCharacter = NamedLockError._("Invalid character in name:");
-  static final NamedLockError emptyName = NamedLockError._("Name must not be empty:");
+  static final NamedLockError emptyName = NamedLockError._("Named lock name cannot be empty.");
   static final NamedLockError createFailed = NamedLockError._("Failed to create named lock:");
   static final NamedLockError lockFailed = NamedLockError._("Failed to lock named lock:");
   static final NamedLockError unlockFailed = NamedLockError._("Failed to unlock named lock:");
