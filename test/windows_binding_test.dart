@@ -44,42 +44,49 @@ void main() {
       // A BOOL is a 32-bit field that is set to 1 to indicate TRUE, or 0 to indicate FALSE.
       // This type is declared as follows:
       // typedef int BOOL, *PBOOL, *LPBOOL;
-      print("=================================== CREATE MUTEX W ==================================== \n");
+      print("\n=================================== CREATE MUTEX W ==================================== \n");
       final int mutex_address = CreateMutexW(nullptr, 0, native_LPCWSTR);
       print(mutex_address);
 
-      final HANDLE = Pointer.fromAddress(mutex_address);
-      print(HANDLE.address);
+      final MUTEX_HANDLE = Pointer.fromAddress(mutex_address);
+
+      print(MUTEX_HANDLE.address);
 
       if (mutex_address == nullptr) {
-        print("=================================== GET LAST ERROR ==================================== \n");
+        print("\n=================================== GET LAST ERROR ==================================== \n");
         int native_last_error = GetLastError();
         print(native_last_error);
         String? error_message = getRestrictedErrorDescription(native_last_error);
         print('Error: ${error_message}');
       }
 
-      print("=================================== WAIT FOR SINGLE OBJECT ==================================== \n");
-      // print(_HANDLE.address);
-      //
-      // final result = WaitForSingleObject(_HANDLE.address, INFINITE);
-      //
-      // print(result);
-      // print('$INFINITE, $WAIT_OBJECT_0, $WAIT_ABANDONED, $WAIT_TIMEOUT');
+      print("\n=================================== WAIT FOR SINGLE OBJECT ==================================== \n");
 
-      // print("=================================== RELEASE MUTEX ==================================== \n");
-      // print('ReleaseMutex');
-      // final released = ReleaseMutex(_HANDLE.address);
-      // print('0 is false and 1 is true, 0 is even and 1 is odd');
-      // print(released.isOdd);
-      //
-      // print("=================================== CLOSE HANDLE ==================================== \n");
-      // final closed = CloseHandle(_HANDLE.address);
-      // print('0 is false and 1 is true, 0 is even and 1 is odd');
-      // print(closed.isOdd);
+      final result = WaitForSingleObject(MUTEX_HANDLE.address, INFINITE);
 
-      print("=================================== FREE ==================================== \n");
+      print(result);
+
+      final RESULT_HANDLE = Pointer.fromAddress(result);
+
+      print(RESULT_HANDLE.address);
+
+      print('$INFINITE, $WAIT_OBJECT_0, $WAIT_ABANDONED, $WAIT_TIMEOUT');
+
+      print("\n=================================== RELEASE MUTEX ==================================== \n");
+      print('ReleaseMutex');
+      final released = ReleaseMutex(MUTEX_HANDLE.address);
+      print('0 is false and 1 is true, 0 is even and 1 is odd');
+      print(released.isOdd);
+
+      print("\n=================================== CLOSE HANDLE ==================================== \n");
+      final closed = CloseHandle(MUTEX_HANDLE.address);
+      print('0 is false and 1 is true, 0 is even and 1 is odd');
+      print(closed.isOdd);
+
+      print("\n=================================== FREE ==================================== \n");
       malloc.free(native_LPCWSTR);
+      malloc.free(MUTEX_HANDLE);
+      malloc.free(RESULT_HANDLE);
     });
   });
 }
