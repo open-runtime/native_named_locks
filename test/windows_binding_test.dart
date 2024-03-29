@@ -97,19 +97,18 @@ void main() {
       // typedef const wchar_t* LPCWSTR;
       // the equivalent of a char pointer (`const wchar_t*`) in C code.
       // StringUtf16Pointer
-      final LPWSTR native_LPCWSTR_1 = identifier.toNativeUtf16(allocator: malloc);
-      final LPWSTR native_LPCWSTR_2 = identifier.toNativeUtf16(allocator: malloc);
+      final LPWSTR native_LPCWSTR = identifier.toNativeUtf16(allocator: malloc);
 
-      print(native_LPCWSTR_1.toDartString());
-      print(native_LPCWSTR_2.toDartString());
+      print(native_LPCWSTR.toDartString());
 
       print("\n=================================== CREATE MUTEX W 1 ==================================== \n");
-      final int mutex_address_1 = CreateMutexW(nullptr, 0, native_LPCWSTR_1);
+      final int mutex_address_1 = CreateMutexW(nullptr, 0, native_LPCWSTR);
+
       print(mutex_address_1);
 
       final MUTEX_HANDLE = Pointer.fromAddress(mutex_address_1);
 
-      // print(MUTEX_HANDLE.address);
+      print(MUTEX_HANDLE.address);
 
       if (mutex_address_1 == nullptr) {
         print("\n=================================== GET LAST ERROR ==================================== \n");
@@ -131,7 +130,13 @@ void main() {
       print('$INFINITE, $WAIT_OBJECT_0, $WAIT_ABANDONED, $WAIT_TIMEOUT');
 
       print("\n=================================== CREATE MUTEX W 2 ==================================== \n");
-      final int mutex_address_2 = CreateMutexW(nullptr, 0, native_LPCWSTR_2);
+      final int mutex_address_2 = CreateMutexW(nullptr, 0, native_LPCWSTR);
+
+      print(mutex_address_2);
+
+      final MUTEX_HANDLE_2 = Pointer.fromAddress(mutex_address_1);
+
+      print(MUTEX_HANDLE_2.address);
 
       if (mutex_address_2 == nullptr) {
         print("\n=================================== GET LAST ERROR ==================================== \n");
@@ -143,8 +148,7 @@ void main() {
 
       print("\n=================================== RELEASE MUTEXES ==================================== \n");
 
-      malloc.free(native_LPCWSTR_1);
-      malloc.free(native_LPCWSTR_2);
+      malloc.free(native_LPCWSTR);
     });
   });
 }
