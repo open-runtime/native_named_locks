@@ -63,7 +63,6 @@ void main() {
       print("\n=================================== WAIT FOR SINGLE OBJECT ==================================== \n");
 
       final result = WaitForSingleObject(MUTEX_HANDLE.address, INFINITE);
-
       print(result);
 
       // final RESULT_HANDLE = Pointer.fromAddress(result);
@@ -75,11 +74,13 @@ void main() {
       print("\n=================================== RELEASE MUTEX ==================================== \n");
       print('ReleaseMutex');
       final released = ReleaseMutex(MUTEX_HANDLE.address);
+      print(released);
       print('0 is false and 1 is true, 0 is even and 1 is odd');
       print(released.isOdd);
 
       print("\n=================================== CLOSE HANDLE ==================================== \n");
       final closed = CloseHandle(MUTEX_HANDLE.address);
+      print(closed);
       print('0 is false and 1 is true, 0 is even and 1 is odd');
       print(closed.isOdd);
 
@@ -87,6 +88,63 @@ void main() {
       malloc.free(native_LPCWSTR);
       // malloc.free(MUTEX_HANDLE);
       // malloc.free(RESULT_HANDLE);
+    });
+
+    test('Try to force error on Create Mutex W', () {
+      final identifier = join("Global\\", 'my_named_lock_forced_error');
+
+      // An LPCWSTR is a 32-bit pointer to a CONSTANT string of 16-bit Unicode characters, which MAY be null-terminated.
+      // typedef const wchar_t* LPCWSTR;
+      // the equivalent of a char pointer (`const wchar_t*`) in C code.
+      // StringUtf16Pointer
+      final LPWSTR native_LPCWSTR_1 = identifier.toNativeUtf16(allocator: malloc);
+      final LPWSTR native_LPCWSTR_2 = identifier.toNativeUtf16(allocator: malloc);
+
+      print(native_LPCWSTR_1.toDartString());
+      print(native_LPCWSTR_2.toDartString());
+
+      print("\n=================================== CREATE MUTEX W 1 ==================================== \n");
+      final int mutex_address_1 = CreateMutexW(nullptr, 0, native_LPCWSTR_1);
+      print(mutex_address_1);
+
+      final MUTEX_HANDLE = Pointer.fromAddress(mutex_address_1);
+
+      // print(MUTEX_HANDLE.address);
+
+      if (mutex_address_1 == nullptr) {
+        print("\n=================================== GET LAST ERROR ==================================== \n");
+        int native_last_error = GetLastError();
+        print(native_last_error);
+        String? error_message = getRestrictedErrorDescription(native_last_error);
+        print('Error: ${error_message}');
+      }
+
+      print("\n=================================== WAIT FOR SINGLE OBJECT ==================================== \n");
+
+      final result = WaitForSingleObject(MUTEX_HANDLE.address, INFINITE);
+      print(result);
+
+      // final RESULT_HANDLE = Pointer.fromAddress(result);
+
+      // print(RESULT_HANDLE.address);
+
+      print('$INFINITE, $WAIT_OBJECT_0, $WAIT_ABANDONED, $WAIT_TIMEOUT');
+
+      print("\n=================================== CREATE MUTEX W 2 ==================================== \n");
+      final int mutex_address_2 = CreateMutexW(nullptr, 0, native_LPCWSTR_2);
+
+      if (mutex_address_2 == nullptr) {
+        print("\n=================================== GET LAST ERROR ==================================== \n");
+        int native_last_error = GetLastError();
+        print(native_last_error);
+        String? error_message = getRestrictedErrorDescription(native_last_error);
+        print('Error: ${error_message}');
+      }
+
+      print("\n=================================== RELEASE MUTEXES ==================================== \n");
+
+      malloc.free(native_LPCWSTR_1);
+      malloc.free(native_LPCWSTR_2);
     });
   });
 }
