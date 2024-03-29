@@ -1,9 +1,9 @@
-// @TestOn('windows')
+@TestOn('windows')
 
 import 'dart:ffi';
 import 'package:ffi/ffi.dart';
 
-import 'package:win32/src/types.dart' show HANDLE;
+import 'package:win32/src/types.dart' show HANDLE, LPWSTR;
 import 'package:win32/win32.dart' show BOOL;
 
 import 'package:path/path.dart' show join;
@@ -22,7 +22,7 @@ void main() {
       // typedef const wchar_t* LPCWSTR;
       // the equivalent of a char pointer (`const wchar_t*`) in C code.
       // StringUtf16Pointer
-      final Pointer<Utf16> native_LPCWSTR = identifier.toNativeUtf16(allocator: malloc);
+      final LPWSTR native_LPCWSTR = identifier.toNativeUtf16(allocator: malloc);
       // final Uint32 native_BOOL = Uint32.fromBool(initial_owner);
 
       // BOOL
@@ -44,6 +44,8 @@ void main() {
       // typedef int BOOL, *PBOOL, *LPBOOL;
       print("=================================== CREATE MUTEX W ==================================== \n");
       final int mutex_address = CreateMutexW(nullptr, 0, native_LPCWSTR);
+      final HANDLE = Pointer.fromAddress(mutex_address);
+      print(HANDLE.address);
 
       if (mutex_address == nullptr) {
         print("=================================== GET LAST ERROR ==================================== \n");
@@ -53,7 +55,6 @@ void main() {
       }
 
       print("=================================== WAIT FOR SINGLE OBJECT ==================================== \n");
-      // final _HANDLE = Pointer.fromAddress(mutex_address);
       // print(_HANDLE.address);
       //
       // final result = WaitForSingleObject(_HANDLE.address, INFINITE);
