@@ -1,21 +1,18 @@
 @TestOn('windows')
 
-import 'dart:ffi';
-import 'dart:io';
+import 'dart:ffi' show Pointer, nullptr;
 
-import 'package:ffi/ffi.dart';
+import 'package:ffi/ffi.dart' show StringUtf16Pointer, Utf16, malloc;
 import 'package:path/path.dart' show join;
 import 'package:runtime_native_named_locks/src/bindings/windows.dart'
     show CreateMutexW, ReleaseMutex, WAIT_ABANDONED, WAIT_OBJECT_0, WAIT_TIMEOUT;
-import 'package:test/test.dart'
-    show TestOn, contains, equals, expect, group, isA, isNonZero, isNotNull, isNull, isTrue, tearDown, test, throwsA;
+import 'package:test/test.dart' show TestOn, group, test;
 import 'package:win32/win32.dart' show CloseHandle, DWORD, GetLastError, HANDLE, INFINITE, NULL, WaitForSingleObject;
-import 'package:windows_foundation/internal.dart'
-    show BoolConversions, HString, ObjectConversion, getRestrictedErrorDescription;
+import 'package:windows_foundation/internal.dart' show getRestrictedErrorDescription;
 
 void main() {
   group('WindowsNamedLock', () {
-    test('Initialize ', () {
+    test('Initialize & test FFI Bindings', () {
       final identifier = join("Global\\", 'my_named_lock');
 
       // An LPCWSTR is a 32-bit pointer to a CONSTANT string of 16-bit Unicode characters, which MAY be null-terminated.
