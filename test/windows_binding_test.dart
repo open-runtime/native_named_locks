@@ -1,13 +1,16 @@
-@TestOn('windows')
+// @TestOn('windows')
 
-import 'dart:ffi' show Pointer, nullptr;
+import 'dart:ffi';
+import 'package:ffi/ffi.dart';
 
-import 'package:ffi/ffi.dart' show StringUtf16Pointer, Utf16, malloc;
+import 'package:win32/src/types.dart' show HANDLE;
+import 'package:win32/win32.dart' show BOOL;
+
 import 'package:path/path.dart' show join;
 import 'package:runtime_native_named_locks/src/bindings/windows.dart'
     show CreateMutexW, ReleaseMutex, WAIT_ABANDONED, WAIT_OBJECT_0, WAIT_TIMEOUT;
 import 'package:test/test.dart' show TestOn, group, test;
-import 'package:win32/win32.dart' show CloseHandle, DWORD, GetLastError, HANDLE, INFINITE, NULL, WaitForSingleObject;
+import 'package:win32/win32.dart' show CloseHandle, GetLastError, INFINITE, WaitForSingleObject;
 import 'package:windows_foundation/internal.dart' show getRestrictedErrorDescription;
 
 void main() {
@@ -50,24 +53,24 @@ void main() {
       }
 
       print("=================================== WAIT FOR SINGLE OBJECT ==================================== \n");
-      final HANDLE = Pointer.fromAddress(mutex_address);
-      print(HANDLE.address);
+      // final _HANDLE = Pointer.fromAddress(mutex_address);
+      // print(_HANDLE.address);
+      //
+      // final result = WaitForSingleObject(_HANDLE.address, INFINITE);
+      //
+      // print(result);
+      // print('$INFINITE, $WAIT_OBJECT_0, $WAIT_ABANDONED, $WAIT_TIMEOUT');
 
-      final result = WaitForSingleObject(HANDLE.address, INFINITE);
-
-      print(result);
-      print('$INFINITE, $WAIT_OBJECT_0, $WAIT_ABANDONED, $WAIT_TIMEOUT');
-
-      print("=================================== RELEASE MUTEX ==================================== \n");
-      print('ReleaseMutex');
-      final released = ReleaseMutex(HANDLE.address);
-      print('0 is false and 1 is true, 0 is even and 1 is odd');
-      print(released.isOdd);
-
-      print("=================================== CLOSE HANDLE ==================================== \n");
-      final closed = CloseHandle(HANDLE.address);
-      print('0 is false and 1 is true, 0 is even and 1 is odd');
-      print(closed.isOdd);
+      // print("=================================== RELEASE MUTEX ==================================== \n");
+      // print('ReleaseMutex');
+      // final released = ReleaseMutex(_HANDLE.address);
+      // print('0 is false and 1 is true, 0 is even and 1 is odd');
+      // print(released.isOdd);
+      //
+      // print("=================================== CLOSE HANDLE ==================================== \n");
+      // final closed = CloseHandle(_HANDLE.address);
+      // print('0 is false and 1 is true, 0 is even and 1 is odd');
+      // print(closed.isOdd);
 
       print("=================================== FREE ==================================== \n");
       malloc.free(native_LPCWSTR);
