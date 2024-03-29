@@ -50,7 +50,7 @@ void main() {
 
       final MUTEX_HANDLE = Pointer.fromAddress(mutex_address);
 
-      print(MUTEX_HANDLE.address);
+      // print(MUTEX_HANDLE.address);
 
       if (mutex_address == nullptr) {
         print("\n=================================== GET LAST ERROR ==================================== \n");
@@ -66,9 +66,9 @@ void main() {
 
       print(result);
 
-      final RESULT_HANDLE = Pointer.fromAddress(result);
+      // final RESULT_HANDLE = Pointer.fromAddress(result);
 
-      print(RESULT_HANDLE.address);
+      // print(RESULT_HANDLE.address);
 
       print('$INFINITE, $WAIT_OBJECT_0, $WAIT_ABANDONED, $WAIT_TIMEOUT');
 
@@ -85,8 +85,8 @@ void main() {
 
       print("\n=================================== FREE ==================================== \n");
       malloc.free(native_LPCWSTR);
-      malloc.free(MUTEX_HANDLE);
-      malloc.free(RESULT_HANDLE);
+      // malloc.free(MUTEX_HANDLE);
+      // malloc.free(RESULT_HANDLE);
     });
   });
 }
