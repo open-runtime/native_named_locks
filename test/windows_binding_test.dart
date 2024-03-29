@@ -102,7 +102,7 @@ void main() {
       print(native_LPCWSTR.toDartString());
 
       print("\n=================================== CREATE MUTEX W 1 ==================================== \n");
-      final int mutex_address_1 = CreateMutexW(nullptr, 0, native_LPCWSTR);
+      final int mutex_address_1 = CreateMutexW(nullptr, 1, native_LPCWSTR);
 
       print(mutex_address_1);
 
@@ -130,11 +130,11 @@ void main() {
       print('$INFINITE, $WAIT_OBJECT_0, $WAIT_ABANDONED, $WAIT_TIMEOUT');
 
       print("\n=================================== CREATE MUTEX W 2 ==================================== \n");
-      final int mutex_address_2 = CreateMutexW(nullptr, 0, native_LPCWSTR);
+      final int mutex_address_2 = CreateMutexW(nullptr, 1, native_LPCWSTR);
 
       print(mutex_address_2);
 
-      final MUTEX_HANDLE_2 = Pointer.fromAddress(mutex_address_1);
+      final MUTEX_HANDLE_2 = Pointer.fromAddress(mutex_address_2);
 
       print(MUTEX_HANDLE_2.address);
 
