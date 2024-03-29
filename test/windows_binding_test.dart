@@ -23,6 +23,8 @@ void main() {
       // the equivalent of a char pointer (`const wchar_t*`) in C code.
       // StringUtf16Pointer
       final LPWSTR native_LPCWSTR = identifier.toNativeUtf16(allocator: malloc);
+
+      print(native_LPCWSTR.toDartString());
       // final Uint32 native_BOOL = Uint32.fromBool(initial_owner);
 
       // BOOL
@@ -44,12 +46,15 @@ void main() {
       // typedef int BOOL, *PBOOL, *LPBOOL;
       print("=================================== CREATE MUTEX W ==================================== \n");
       final int mutex_address = CreateMutexW(nullptr, 0, native_LPCWSTR);
+      print(mutex_address);
+
       final HANDLE = Pointer.fromAddress(mutex_address);
       print(HANDLE.address);
 
       if (mutex_address == nullptr) {
         print("=================================== GET LAST ERROR ==================================== \n");
         int native_last_error = GetLastError();
+        print(native_last_error);
         String? error_message = getRestrictedErrorDescription(native_last_error);
         print('Error: ${error_message}');
       }
