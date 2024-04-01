@@ -106,5 +106,27 @@ jobs:
       - name: Install Dart Dependencies
         run: dart pub get
 
+      - name: Enable Developer Command Prompt
+        if: matrix.config.system_information.operating_system_family == 'windows'
+        uses: ilammy/msvc-dev-cmd@v1.13.0
+
+      - name: Compile C++ code
+        if: matrix.config.system_information.operating_system_family == 'windows'
+        run: |
+          cl /EHsc test\native_create_mutex_w.cpp /Fe:test\native_create_mutex_w.exe
+
+      - name: Verify executable creation
+        if: matrix.config.system_information.operating_system_family == 'windows'
+        run: |
+          if exist test\native_create_mutex_w.exe (echo Executable created successfully) else (exit /b 1)
+
+      - name: Run C++ code as a background process
+        run: |
+          start /B test\native_create_mutex_w.exe
+
+      - name: Run Dart Code
+        if: matrix.config.system_information.operating_system_family == 'windows'
+        run: dart run test/create_mutex_w.dart
+
       - name: Run Dart Tests
         run: dart test .
