@@ -67,13 +67,13 @@ main() async {
   print('Started process: ${process.pid}');
 
   process.stdout.listen((List<int> event) {
-    print('stdout: ${String.fromCharCodes(event)}');
+    print('process_b stdout: ${String.fromCharCodes(event)}');
   });
   process.stderr.listen((List<int> event) {
-    print('stderr: ${String.fromCharCodes(event)}');
+    print('process_b stderr: ${String.fromCharCodes(event)}');
   });
   process.exitCode.then((int code) {
-    print('Exit code: $code');
+    print('process_b Exit code: $code');
   });
 
   final Process process_b = await Process.start(exe, [], mode: ProcessStartMode.normal);
@@ -81,13 +81,13 @@ main() async {
   print('Started process: ${process_b.pid}');
 
   process_b.stdout.listen((List<int> event) {
-    print('stdout: ${String.fromCharCodes(event)}');
+    print('process_b stdout: ${String.fromCharCodes(event)}');
   });
   process_b.stderr.listen((List<int> event) {
-    print('stderr: ${String.fromCharCodes(event)}');
+    print('process_b stderr: ${String.fromCharCodes(event)}');
   });
   process_b.exitCode.then((int code) {
-    print('Exit code: $code');
+    print('process_b Exit code: $code');
   });
 
   sleep(Duration(seconds: 30));
