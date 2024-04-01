@@ -1,9 +1,9 @@
 import 'dart:async' show Completer;
 import 'dart:ffi' show Allocator, Pointer, Uint16, Uint16Pointer, nullptr;
 import 'dart:io' show File, Process, ProcessStartMode, sleep;
-import 'dart:typed_data';
+import 'dart:typed_data' show Uint16List;
 
-import 'package:ffi/ffi.dart' show Utf16, malloc;
+import 'package:ffi/ffi.dart' show Utf16, Utf16Pointer, malloc;
 import 'package:path/path.dart' show dirname, join;
 import 'package:runtime_native_named_locks/src/bindings/windows.dart'
     show CreateMutexW, CreateSemaphoreW, WAIT_ABANDONED, WAIT_OBJECT_0, WAIT_TIMEOUT;
@@ -36,18 +36,18 @@ main() async {
   print('Started process: ${process.pid}');
 
   process.stdout.listen((List<int> event) {
-    print('process_b stdout: ${String.fromCharCodes(event)}');
+    print('process stdout: ${String.fromCharCodes(event)}');
   });
   process.stderr.listen((List<int> event) {
-    print('process_b stderr: ${String.fromCharCodes(event)}');
+    print('process stderr: ${String.fromCharCodes(event)}');
   });
   process.exitCode.then((int code) {
-    print('process_b Exit code: $code');
+    print('process Exit code: $code');
   });
 
   final Process process_b = await Process.start(exe, [], mode: ProcessStartMode.normal);
 
-  print('Started process: ${process_b.pid}');
+  print('Started process_b: ${process_b.pid}');
 
   final Completer<void> completer = Completer<void>();
 
@@ -70,7 +70,18 @@ main() async {
 
   print(identifier);
   final LPWSTR native_LPCWSTR = name.toNativeUtf16();
-  print(native_LPCWSTR.address);
+  print('address: ${native_LPCWSTR.address}');
+
+  // Print the address of the native string
+  print("The address of 'name' is: 0x${native_LPCWSTR.address.toRadixString(16).padLeft(16, '0')}");
+
+  // Print the entire string referred by 'nativeName'
+  print("Complete string: ${native_LPCWSTR.toDartString()}");
+
+  // Print each character's Unicode code in 'nativeName' as a list of hex values
+  print("Character codes in Dart string: ${name.codeUnits.map((unit) => '0x${unit.toRadixString(16)}').join(' ')}");
+
+  // Free the allocated memory for the native string
 
   print("\n =================================== CREATE MUTEX W ==================================== \n");
   final int mutex_address = CreateSemaphoreW(NULL, 1, 1, native_LPCWSTR);
