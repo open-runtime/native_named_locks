@@ -8,13 +8,17 @@
 void printCharacterCodesInHex(const std::wstring& input) {
     std::wstringstream hexCodes;
     for (wchar_t ch : input) {
-        hexCodes << L"0x" << std::hex << std::setw(4) << std::setfill(L'0') << static_cast<int>(ch) << L" ";
+        if (ch == L'\0') {
+            hexCodes << L"NULL ";
+        } else {
+            hexCodes << L"0x" << std::hex << std::setw(4) << std::setfill(L'0') << static_cast<int>(ch) << L" ";
+        }
     }
     std::wcout << L"C++ string character codes in hex: " << hexCodes.str() << std::endl;
 }
 
 int main() {
-    LPCWSTR name = L"Global\\cross_isolate_windows_lock"; // Name of the semaphore object
+    LPCWSTR name = L"Global\\cross_isolate_windows_lock\0"; // Name of the semaphore object
 
     // Print the address of 'name'
     std::wcout << L"The address of 'name' is: "
@@ -34,6 +38,11 @@ int main() {
     // Print the character codes in 'name'
     std::wcout << L"Character codes in LPCWSTR string: " << woss.str() << std::endl;
 
+    // Create a wstring that includes the null terminator
+    std::wstring nameWithNullTerminator(name);
+    nameWithNullTerminator.push_back(L'\0');  // Explicitly add the null terminator
+
+    printCharacterCodesInHex(nameWithNullTerminator);
 
     printCharacterCodesInHex(name);
 
