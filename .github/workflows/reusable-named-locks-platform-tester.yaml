@@ -118,7 +118,12 @@ jobs:
       - name: Verify executable creation
         if: matrix.config.system_information.operating_system_family == 'windows'
         run: |
-          if exist test\native_create_mutex_w.exe (echo Executable created successfully) else (exit /b 1)
+          if (Test-Path test\native_create_mutex_w.exe) {
+            Write-Host "Executable created successfully"
+          } else {
+            Write-Error "Executable does not exist"
+            exit 1
+          }
 
       - name: Run C++ code as a background process
         run: |
