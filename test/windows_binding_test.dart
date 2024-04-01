@@ -193,7 +193,7 @@ void main() {
         final LPWSTR native_LPCWSTR = name.toNativeUtf16(allocator: malloc);
         print(
             "\n $isolate_id =================================== CREATE MUTEX W ==================================== \n");
-        final int mutex_address = CreateMutexW(nullptr, 0, native_LPCWSTR);
+        final int mutex_address = CreateMutexW(nullptr, 1, native_LPCWSTR);
         final MUTEX_HANDLE = Pointer.fromAddress(mutex_address);
 
         print(mutex_address);
@@ -212,6 +212,15 @@ void main() {
         print('$isolate_id Error: ${error_message}');
         acquired = false;
         // }
+
+        final result = WaitForSingleObject(MUTEX_HANDLE.address, INFINITE);
+        print(result);
+
+        // final RESULT_HANDLE = Pointer.fromAddress(result);
+
+        // print(RESULT_HANDLE.address);
+
+        print('$INFINITE, $WAIT_OBJECT_0, $WAIT_ABANDONED, $WAIT_TIMEOUT');
 
         // final WeakReference<NamedLockGuard> reference = NamedLocks.create(name: lockFilePath, nameIsUnixPath: true);
 
