@@ -2,11 +2,11 @@
 #include <iostream>
 
 int main() {
-    LPCWSTR mutexName = L"Global\\cross_isolate_windows_lock"; // Name of the mutex object
+    LPCWSTR name = L"Global\\cross_isolate_windows_lock"; // Name of the mutex object
     HANDLE mutexHandle;
 
     // Try to create a mutex object
-    mutexHandle = CreateMutexW(NULL, TRUE, mutexName);
+    mutexHandle = CreateMutexW(NULL, TRUE, name);
 
     // Check if the mutex was created successfully
     if (mutexHandle == NULL) {
@@ -21,7 +21,7 @@ int main() {
         }
 
         // Try to lock the mutex
-        DWORD dwWaitResult = WaitForSingleObject(mutexHandle, INFINITE); // Wait indefinitely
+        DWORD dwWaitResult = WaitForSingleObject(mutexHandle, 5000); // Wait indefinitely
         //        Print the result of the wait operation
 
         std::wcout << L"From CPP WaitForSingleObject returned: " << dwWaitResult << std::endl;

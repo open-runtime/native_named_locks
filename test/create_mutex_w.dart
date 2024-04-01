@@ -14,22 +14,6 @@ main() async {
   // ensure exe exists
   print('exe exists ${File(exe).existsSync()}');
 
-  // Run CPP native_create_mutex_w.exe
-  // test\native_create_mutex_w.exe
-  final Process process = await Process.start(exe, [], mode: ProcessStartMode.normal);
-
-  print('Started process: ${process.pid}');
-
-  process.stdout.listen((List<int> event) {
-    print('stdout: ${String.fromCharCodes(event)}');
-  });
-  process.stderr.listen((List<int> event) {
-    print('stderr: ${String.fromCharCodes(event)}');
-  });
-  process.exitCode.then((int code) {
-    print('Exit code: $code');
-  });
-
   final name = 'cross_isolate_windows_lock';
   final identifier = join("Global\\", name);
 
@@ -53,7 +37,7 @@ main() async {
   // acquired = false;
   // }
 
-  final result = WaitForSingleObject(MUTEX_HANDLE.address, 0);
+  final result = WaitForSingleObject(MUTEX_HANDLE.address, INFINITE);
   print('|| $result');
 
   // final RESULT_HANDLE = Pointer.fromAddress(result);
@@ -75,6 +59,22 @@ main() async {
   // reference.target?.dispose()
   // int closed = CloseHandle(MUTEX_HANDLE.address);
   // print('$isolate_id  && closed": $closed');
+
+  // Run CPP native_create_mutex_w.exe
+  // test\native_create_mutex_w.exe
+  final Process process = await Process.start(exe, [], mode: ProcessStartMode.detachedWithStdio);
+
+  print('Started process: ${process.pid}');
+
+  process.stdout.listen((List<int> event) {
+    print('stdout: ${String.fromCharCodes(event)}');
+  });
+  process.stderr.listen((List<int> event) {
+    print('stderr: ${String.fromCharCodes(event)}');
+  });
+  process.exitCode.then((int code) {
+    print('Exit code: $code');
+  });
 
   sleep(Duration(seconds: 30));
 
