@@ -90,6 +90,35 @@ void main() {
       // malloc.free(RESULT_HANDLE);
     });
 
+    test('Try to force error on NamedLock name length', () {
+      // Anything longer than 260 characters should throw an error
+      final too_long_of_a_name = 'abc' * 260;
+      final identifier = join("Global\\", too_long_of_a_name);
+
+      final LPWSTR native_LPCWSTR = identifier.toNativeUtf16(allocator: malloc);
+
+      print(native_LPCWSTR.toDartString());
+
+      print(
+          "\n=================================== CreateMutexW with too_long_of_a_name  ==================================== \n");
+      final int mutex_address = CreateMutexW(nullptr, 0, native_LPCWSTR);
+      final MUTEX_HANDLE = Pointer.fromAddress(mutex_address);
+
+      print(mutex_address);
+      print(MUTEX_HANDLE.address);
+
+      if (mutex_address == nullptr) {
+        print("\n=================================== GET LAST ERROR ==================================== \n");
+        int native_last_error = GetLastError();
+        print(native_last_error);
+        String? error_message = getRestrictedErrorDescription(native_last_error);
+        print('Error: ${error_message}');
+      }
+
+      print("\n=================================== FREE ==================================== \n");
+      malloc.free(native_LPCWSTR);
+    });
+
     test('Try to force error on Create Mutex W', () {
       final identifier = join("Global\\", 'my_named_lock_forced_error');
 
