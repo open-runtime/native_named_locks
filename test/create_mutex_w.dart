@@ -14,6 +14,34 @@ main() async {
   // ensure exe exists
   print('exe exists ${File(exe).existsSync()}');
 
+  final Process process = await Process.start(exe, [], mode: ProcessStartMode.normal);
+
+  print('Started process: ${process.pid}');
+
+  process.stdout.listen((List<int> event) {
+    print('process_b stdout: ${String.fromCharCodes(event)}');
+  });
+  process.stderr.listen((List<int> event) {
+    print('process_b stderr: ${String.fromCharCodes(event)}');
+  });
+  process.exitCode.then((int code) {
+    print('process_b Exit code: $code');
+  });
+
+  final Process process_b = await Process.start(exe, [], mode: ProcessStartMode.normal);
+
+  print('Started process: ${process_b.pid}');
+
+  process_b.stdout.listen((List<int> event) {
+    print('process_b stdout: ${String.fromCharCodes(event)}');
+  });
+  process_b.stderr.listen((List<int> event) {
+    print('process_b stderr: ${String.fromCharCodes(event)}');
+  });
+  process_b.exitCode.then((int code) {
+    print('process_b Exit code: $code');
+  });
+
   final name = 'cross_isolate_windows_lock';
   final identifier = join("Global\\", name);
 
@@ -62,33 +90,6 @@ main() async {
 
   // Run CPP native_create_mutex_w.exe
   // test\native_create_mutex_w.exe
-  final Process process = await Process.start(exe, [], mode: ProcessStartMode.normal);
-
-  print('Started process: ${process.pid}');
-
-  process.stdout.listen((List<int> event) {
-    print('process_b stdout: ${String.fromCharCodes(event)}');
-  });
-  process.stderr.listen((List<int> event) {
-    print('process_b stderr: ${String.fromCharCodes(event)}');
-  });
-  process.exitCode.then((int code) {
-    print('process_b Exit code: $code');
-  });
-
-  final Process process_b = await Process.start(exe, [], mode: ProcessStartMode.normal);
-
-  print('Started process: ${process_b.pid}');
-
-  process_b.stdout.listen((List<int> event) {
-    print('process_b stdout: ${String.fromCharCodes(event)}');
-  });
-  process_b.stderr.listen((List<int> event) {
-    print('process_b stderr: ${String.fromCharCodes(event)}');
-  });
-  process_b.exitCode.then((int code) {
-    print('process_b Exit code: $code');
-  });
 
   sleep(Duration(seconds: 30));
 
