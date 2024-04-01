@@ -75,7 +75,7 @@ main() async {
   // acquired = false;
   // }
 
-  final result = WaitForSingleObject(MUTEX_HANDLE.address, INFINITE);
+  final result = WaitForSingleObject(MUTEX_HANDLE.address, 0);
   print('|| $result');
 
   // final RESULT_HANDLE = Pointer.fromAddress(result);
