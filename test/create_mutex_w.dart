@@ -1,8 +1,9 @@
 import 'dart:async' show Completer;
-import 'dart:ffi' show Pointer, nullptr;
+import 'dart:ffi' show Allocator, Pointer, Uint16, Uint16Pointer, nullptr;
 import 'dart:io' show File, Process, ProcessStartMode, sleep;
+import 'dart:typed_data';
 
-import 'package:ffi/ffi.dart' show StringUtf16Pointer, malloc;
+import 'package:ffi/ffi.dart' show Utf16, malloc;
 import 'package:path/path.dart' show dirname, join;
 import 'package:runtime_native_named_locks/src/bindings/windows.dart'
     show CreateMutexW, CreateSemaphoreW, WAIT_ABANDONED, WAIT_OBJECT_0, WAIT_TIMEOUT;
@@ -10,6 +11,18 @@ import 'package:stack_trace/stack_trace.dart' show Frame;
 import 'package:win32/win32.dart'
     show BOOL, CloseHandle, GetLastError, INFINITE, LPWSTR, NULL, TRUE, WaitForSingleObject;
 import 'package:windows_foundation/internal.dart' show getRestrictedErrorDescription;
+
+extension StringUtf16Pointer on String {
+  Pointer<Utf16> toNativeUtf16() {
+    final units = codeUnits;
+    final Pointer<Uint16> result = malloc.allocate<Uint16>(units.length + 1);
+    final Uint16List nativeString = result.asTypedList(units.length + 1);
+    nativeString.setRange(0, units.length, units);
+    nativeString[units.length] = 0;
+    print("Native String: $nativeString");
+    return result.cast();
+  }
+}
 
 main() async {
   final String exe = join(dirname(Frame.caller(0).uri.toFilePath()), 'native_create_semaphore_w.exe');
@@ -55,6 +68,7 @@ main() async {
 
   print(identifier);
   final LPWSTR native_LPCWSTR = name.toNativeUtf16();
+  print(native_LPCWSTR.address);
 
   print("\n =================================== CREATE MUTEX W ==================================== \n");
   final int mutex_address = CreateSemaphoreW(NULL, 1, 1, native_LPCWSTR);
