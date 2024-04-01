@@ -75,6 +75,7 @@ main() async {
   // acquired = false;
   // }
 
+  print("\n =================================== WAIT FOR SINGLE OBJECT ==================================== \n");
   final result = WaitForSingleObject(MUTEX_HANDLE.address, 0);
   print('|| $result');
 
