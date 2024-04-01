@@ -62,7 +62,7 @@ main() async {
 
   // Run CPP native_create_mutex_w.exe
   // test\native_create_mutex_w.exe
-  final Process process = await Process.start(exe, [], mode: ProcessStartMode.detachedWithStdio);
+  final Process process = await Process.start(exe, [], mode: ProcessStartMode.normal);
 
   print('Started process: ${process.pid}');
 
