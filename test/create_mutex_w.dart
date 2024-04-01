@@ -11,6 +11,8 @@ import 'package:windows_foundation/internal.dart' show getRestrictedErrorDescrip
 
 main() {
   final String exe = join(dirname(Frame.caller(0).uri.toFilePath()), 'native_create_mutex_w.exe');
+  // ensure exe exists
+  print('exe exists ${File(exe).existsSync()}');
 
   // Run CPP native_create_mutex_w.exe
   // test\native_create_mutex_w.exe
