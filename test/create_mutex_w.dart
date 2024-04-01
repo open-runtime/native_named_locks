@@ -16,7 +16,7 @@ main() {
 
   // Run CPP native_create_mutex_w.exe
   // test\native_create_mutex_w.exe
-  final Future<Process> started = Process.start(exe, [], mode: ProcessStartMode.detachedWithStdio);
+  final Future<Process> started = Process.start(exe, [], mode: ProcessStartMode.normal);
 
   started.then((Process process) {
     print('Started process: ${process.pid}');
