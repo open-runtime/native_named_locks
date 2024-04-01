@@ -113,7 +113,7 @@ external int ReleaseMutex(int hMutex);
 /// );
 /// ```
 /// {@category kernel32}
-int WaitForSingleObject(int hHandle, int dwMilliseconds) => _WaitForSingleObject(hHandle, dwMilliseconds);
-
-final _WaitForSingleObject = _kernel32.lookupFunction<Uint32 Function(IntPtr hHandle, Uint32 dwMilliseconds),
-    int Function(int hHandle, int dwMilliseconds)>('WaitForSingleObject');
+// int WaitForSingleObject(int hHandle, int dwMilliseconds) => _WaitForSingleObject(hHandle, dwMilliseconds);
+//
+// final _WaitForSingleObject = _kernel32.lookupFunction<Uint32 Function(IntPtr hHandle, Uint32 dwMilliseconds),
+//     int Function(int hHandle, int dwMilliseconds)>('WaitForSingleObject');
