@@ -20,6 +20,8 @@ extension StringUtf16Pointer on String {
     nativeString.setRange(0, units.length, units);
     nativeString[units.length] = 0;
     print("Native String: $nativeString");
+    print("Character codes in Dart string: ${nativeString.map((unit) => '0x${unit.toRadixString(16)}').join(' ')}");
+
     return result.cast();
   }
 }
