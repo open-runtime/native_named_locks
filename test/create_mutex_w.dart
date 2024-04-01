@@ -54,7 +54,7 @@ main() async {
   await completer.future;
 
   print(identifier);
-  final LPWSTR native_LPCWSTR = name.toNativeUtf16(allocator: malloc);
+  final LPWSTR native_LPCWSTR = name.toNativeUtf16();
 
   print("\n =================================== CREATE MUTEX W ==================================== \n");
   final int mutex_address = CreateMutexW(NULL, TRUE, native_LPCWSTR);
