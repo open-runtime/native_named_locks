@@ -214,7 +214,7 @@ void main() {
         // }
 
         final result = WaitForSingleObject(MUTEX_HANDLE.address, INFINITE);
-        print(result);
+        print('$isolate_id || $result');
 
         // final RESULT_HANDLE = Pointer.fromAddress(result);
 
