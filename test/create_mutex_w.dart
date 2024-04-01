@@ -7,7 +7,8 @@ import 'package:path/path.dart' show dirname, join;
 import 'package:runtime_native_named_locks/src/bindings/windows.dart'
     show CreateMutexW, WAIT_ABANDONED, WAIT_OBJECT_0, WAIT_TIMEOUT;
 import 'package:stack_trace/stack_trace.dart' show Frame;
-import 'package:win32/win32.dart' show CloseHandle, GetLastError, INFINITE, LPWSTR, WaitForSingleObject;
+import 'package:win32/win32.dart'
+    show BOOL, CloseHandle, GetLastError, INFINITE, LPWSTR, NULL, TRUE, WaitForSingleObject;
 import 'package:windows_foundation/internal.dart' show getRestrictedErrorDescription;
 
 main() async {
@@ -54,8 +55,9 @@ main() async {
 
   print(identifier);
   final LPWSTR native_LPCWSTR = name.toNativeUtf16(allocator: malloc);
+
   print("\n =================================== CREATE MUTEX W ==================================== \n");
-  final int mutex_address = CreateMutexW(nullptr, 1, native_LPCWSTR);
+  final int mutex_address = CreateMutexW(nullptr, TRUE, native_LPCWSTR);
   final MUTEX_HANDLE = Pointer.fromAddress(mutex_address);
 
   print(mutex_address);
