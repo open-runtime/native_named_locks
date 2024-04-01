@@ -9,6 +9,24 @@ import 'package:win32/win32.dart' show CloseHandle, GetLastError, INFINITE, LPWS
 import 'package:windows_foundation/internal.dart' show getRestrictedErrorDescription;
 
 main() {
+  // Run CPP native_create_mutex_w.exe
+  // test\native_create_mutex_w.exe
+  final Future<Process> started =
+      Process.start('native_create_mutex_w.exe', [], mode: ProcessStartMode.detachedWithStdio);
+
+  started.then((Process process) {
+    print('Started process: ${process.pid}');
+    process.stdout.listen((List<int> event) {
+      print('stdout: ${String.fromCharCodes(event)}');
+    });
+    process.stderr.listen((List<int> event) {
+      print('stderr: ${String.fromCharCodes(event)}');
+    });
+    process.exitCode.then((int code) {
+      print('Exit code: $code');
+    });
+  });
+
   final name = 'cross_isolate_windows_lock';
   final identifier = join("Global\\", name);
 

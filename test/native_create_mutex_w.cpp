@@ -22,6 +22,9 @@ int main() {
 
         // Try to lock the mutex
         DWORD dwWaitResult = WaitForSingleObject(mutexHandle, INFINITE); // Wait indefinitely
+        //        Print the result of the wait operation
+
+        std::wcout << L"From CPP WaitForSingleObject returned: " << dwWaitResult << std::endl;
 
         switch (dwWaitResult) {
             // The thread got mutex ownership
