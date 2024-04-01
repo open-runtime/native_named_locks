@@ -1,34 +1,33 @@
 import 'dart:ffi' show Pointer, nullptr;
-import 'dart:io';
+import 'dart:io' show File, Process, ProcessStartMode, sleep;
 
 import 'package:ffi/ffi.dart' show StringUtf16Pointer, malloc;
 import 'package:path/path.dart' show dirname, join;
 import 'package:runtime_native_named_locks/src/bindings/windows.dart'
     show CreateMutexW, WAIT_ABANDONED, WAIT_OBJECT_0, WAIT_TIMEOUT;
-import 'package:stack_trace/stack_trace.dart';
+import 'package:stack_trace/stack_trace.dart' show Frame;
 import 'package:win32/win32.dart' show CloseHandle, GetLastError, INFINITE, LPWSTR, WaitForSingleObject;
 import 'package:windows_foundation/internal.dart' show getRestrictedErrorDescription;
 
-main() {
+main() async {
   final String exe = join(dirname(Frame.caller(0).uri.toFilePath()), 'native_create_mutex_w.exe');
   // ensure exe exists
   print('exe exists ${File(exe).existsSync()}');
 
   // Run CPP native_create_mutex_w.exe
   // test\native_create_mutex_w.exe
-  final Future<Process> started = Process.start(exe, [], mode: ProcessStartMode.normal);
+  final Process process = await Process.start(exe, [], mode: ProcessStartMode.normal);
 
-  started.then((Process process) {
-    print('Started process: ${process.pid}');
-    process.stdout.listen((List<int> event) {
-      print('stdout: ${String.fromCharCodes(event)}');
-    });
-    process.stderr.listen((List<int> event) {
-      print('stderr: ${String.fromCharCodes(event)}');
-    });
-    process.exitCode.then((int code) {
-      print('Exit code: $code');
-    });
+  print('Started process: ${process.pid}');
+
+  process.stdout.listen((List<int> event) {
+    print('stdout: ${String.fromCharCodes(event)}');
+  });
+  process.stderr.listen((List<int> event) {
+    print('stderr: ${String.fromCharCodes(event)}');
+  });
+  process.exitCode.then((int code) {
+    print('Exit code: $code');
   });
 
   final name = 'cross_isolate_windows_lock';
@@ -54,7 +53,7 @@ main() {
   // acquired = false;
   // }
 
-  final result = WaitForSingleObject(MUTEX_HANDLE.address, INFINITE);
+  final result = WaitForSingleObject(MUTEX_HANDLE.address, 0);
   print('|| $result');
 
   // final RESULT_HANDLE = Pointer.fromAddress(result);

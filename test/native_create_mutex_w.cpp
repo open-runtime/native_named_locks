@@ -52,7 +52,7 @@ int main() {
 
 
     // Wait for 1 minute
-    Sleep(60000); // Sleep takes milliseconds as argument
+    Sleep(120000); // Sleep takes milliseconds as argument
 
     // Close the mutex handle
     if (mutexHandle) {
