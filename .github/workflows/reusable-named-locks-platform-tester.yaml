@@ -113,7 +113,7 @@ jobs:
       - name: Compile C++ code
         if: matrix.config.system_information.operating_system_family == 'windows'
         run: |
-          cl /EHsc test\native_create_semaphore_w.cpp /Fe:test\native_create_semaphore_w.exe
+          cl /EHsc test\native_create_mutex_w.cpp /Fe:test\native_create_mutex_w.exe
 
       - name: Verify executable creation
         if: matrix.config.system_information.operating_system_family == 'windows'

@@ -1,8 +1,54 @@
 #include <windows.h>
 #include <iostream>
 
+
+void printCharacterCodesInHex(const std::wstring& input) {
+    std::wstringstream hexCodes;
+    for (wchar_t ch : input) {
+        if (ch == L'\0') {
+            hexCodes << L"NULL ";
+        } else {
+            hexCodes << L"0x" << std::hex << std::setw(4) << std::setfill(L'0') << static_cast<int>(ch) << L" ";
+        }
+    }
+    std::wcout << L"C++ string character codes in hex: " << hexCodes.str() << std::endl;
+}
+
 int main() {
-    LPCWSTR name = L"Global\\cross_isolate_windows_lock"; // Name of the mutex object
+    LPCWSTR name = L"Global\\cross_isolate_windows_lock\0"; // Name of the semaphore object
+
+    // Print the address of 'name'
+    std::wcout << L"The address of 'name' is: "
+               << std::hex << std::setw(16) << std::setfill(L'0')
+               << reinterpret_cast<const void*>(name) << std::endl;
+
+    // Print the entire string referred by 'name'
+    std::wcout << L"Complete string: " << name << std::endl;
+
+    std::wostringstream woss;
+
+    // Append each character's Unicode code in 'name' to the stringstream as a list of hex values
+    for (int i = 0; name[i] != L'\0'; ++i) {
+        woss << std::hex << std::showbase << static_cast<int>(name[i]) << L' ';
+    }
+
+    // Print the character codes in 'name'
+    std::wcout << L"Character codes in LPCWSTR string: " << woss.str() << std::endl;
+
+    // Create a wstring that includes the null terminator
+    std::wstring nameWithNullTerminator(name);
+    nameWithNullTerminator.push_back(L'\0');  // Explicitly add the null terminator
+
+    printCharacterCodesInHex(nameWithNullTerminator);
+
+    printCharacterCodesInHex(name);
+
+   // Check if the name length exceeds MAX_PATH
+    if (wcslen(name) >= MAX_PATH) {
+        std::wcout << L"Error: Semaphore name exceeds the maximum allowed length of " << MAX_PATH << L" characters." << std::endl;
+        return 1; // Exit with an error code
+    }
+
     HANDLE mutexHandle;
 
 //    std::wcout << L"From CPP Starting the program. & CreateMutexW" << std::endl;
@@ -35,8 +81,8 @@ int main() {
                 std::wcout << L"From CPP Mutex locked successfully." << std::endl;
                 // Perform your thread's tasks here.
 
-                // Wait for 30 seconds
-                Sleep(30000); // Sleep takes milliseconds as argument
+                // Wait for 5 seconds
+                Sleep(5000); // Sleep takes milliseconds as argument
 
                 // Release the mutex when done
                 if (!ReleaseMutex(mutexHandle)) {

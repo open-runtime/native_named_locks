@@ -80,14 +80,14 @@ int main() {
                 std::wcout << L"From CPP Semaphore locked successfully." << std::endl;
                 // Perform your thread's tasks here.
 
-//                // Wait for 30 seconds
-//                Sleep(30000); // Sleep takes milliseconds as argument
+//                // Wait for 5 seconds
+                Sleep(5000); // Sleep takes milliseconds as argument
 //
 //                // Release the semaphore when done
-//                if (!ReleaseSemaphore(semaphoreHandle, 1, NULL)) {
-//                    // Handle error.
-//                    std::wcout << L"From CPP Error releasing semaphore." << std::endl;
-//                }
+                if (!ReleaseSemaphore(semaphoreHandle, 1, NULL)) {
+                    // Handle error.
+                    std::wcout << L"From CPP Error releasing semaphore." << std::endl;
+                }
                 break;
 
             // The thread got ownership of an abandoned semaphore
@@ -104,11 +104,11 @@ int main() {
     // Close the semaphore handle
     if (semaphoreHandle) {
         BOOL closeResult = CloseHandle(semaphoreHandle);
-//        if (closeResult) {
-//            std::wcout << L"From CPP Semaphore handle closed successfully." << std::endl;
-//        } else {
-//            std::wcout << L"From CPP CloseHandle failed with error: " << GetLastError() << std::endl;
-//        }
+        if (closeResult) {
+            std::wcout << L"From CPP Semaphore handle closed successfully." << std::endl;
+        } else {
+            std::wcout << L"From CPP CloseHandle failed with error: " << GetLastError() << std::endl;
+        }
     }
 
     return 0;

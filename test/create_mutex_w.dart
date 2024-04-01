@@ -6,10 +6,10 @@ import 'dart:typed_data' show Uint16List;
 import 'package:ffi/ffi.dart' show Utf16, Utf16Pointer, malloc;
 import 'package:path/path.dart' show dirname, join;
 import 'package:runtime_native_named_locks/src/bindings/windows.dart'
-    show CreateMutexW, CreateSemaphoreW, WAIT_ABANDONED, WAIT_OBJECT_0, WAIT_TIMEOUT;
+    show CreateMutexW, CreateSemaphoreW, ReleaseMutex, ReleaseSemaphore, WAIT_ABANDONED, WAIT_OBJECT_0, WAIT_TIMEOUT;
 import 'package:stack_trace/stack_trace.dart' show Frame;
 import 'package:win32/win32.dart'
-    show BOOL, CloseHandle, GetLastError, INFINITE, LPWSTR, NULL, TRUE, WaitForSingleObject;
+    show BOOL, CloseHandle, DWORD, GetLastError, INFINITE, LPWSTR, NULL, TRUE, WaitForSingleObject;
 import 'package:windows_foundation/internal.dart' show getRestrictedErrorDescription;
 
 void printCharacterCodesInHex(String input) {
@@ -35,7 +35,7 @@ extension StringUtf16Pointer on String {
 }
 
 main() async {
-  final String exe = join(dirname(Frame.caller(0).uri.toFilePath()), 'native_create_semaphore_w.exe');
+  final String exe = join(dirname(Frame.caller(0).uri.toFilePath()), 'native_create_mutex_w.exe');
   // ensure exe exists
   print('exe exists ${File(exe).existsSync()}');
 
@@ -93,7 +93,8 @@ main() async {
   printCharacterCodesInHex(name);
 
   print("\n =================================== CREATE MUTEX W ==================================== \n");
-  final int mutex_address = CreateSemaphoreW(NULL, 1, 1, native_LPCWSTR);
+  // final int mutex_address = CreateSemaphoreW(NULL, 1, 1, native_LPCWSTR);
+  final int mutex_address = CreateMutexW(NULL, TRUE, native_LPCWSTR);
   // final int mutex_address = CreateMutexW(NULL, TRUE, native_LPCWSTR);
   final MUTEX_HANDLE = Pointer.fromAddress(mutex_address);
 
@@ -110,7 +111,7 @@ main() async {
   print('Error: ${error_message}');
   // acquired = false;
   // }
-
+  DWORD;
   print("\n =================================== WAIT FOR SINGLE OBJECT ==================================== \n");
   final result = WaitForSingleObject(MUTEX_HANDLE.address, INFINITE);
   print('|| $result');
@@ -121,6 +122,12 @@ main() async {
 
   print('$INFINITE, $WAIT_OBJECT_0, $WAIT_ABANDONED, $WAIT_TIMEOUT');
 
+  print("\n =================================== GET LAST ERROR ==================================== \n");
+  native_last_error = GetLastError();
+  print('$native_last_error');
+  error_message = getRestrictedErrorDescription(native_last_error);
+  print('Error: ${error_message}');
+
   // final WeakReference<NamedLockGuard> reference = NamedLocks.create(name: lockFilePath, nameIsUnixPath: true);
 
   // Attempt to acquire the lock
@@ -129,18 +136,23 @@ main() async {
   // Simulate some work
   // sleep(Duration(milliseconds: Random().nextInt(500)));
 
+  // Release Semaphore
+  // final released = ReleaseSemaphore(MUTEX_HANDLE.address, 1, nullptr);
+  final released = ReleaseMutex(MUTEX_HANDLE.address);
+  print(released);
+
   // Release the lock
   // reference.target?.unlock();
   // reference.target?.dispose()
-  // int closed = CloseHandle(MUTEX_HANDLE.address);
-  // print('$isolate_id  && closed": $closed');
+  int closed = CloseHandle(MUTEX_HANDLE.address);
+  print('closed": $closed');
 
   // Run CPP native_create_mutex_w.exe
   // test\native_create_mutex_w.exe
 
   // sleep(Duration(seconds: 30));
   //
-  // malloc.free(native_LPCWSTR);
+  malloc.free(native_LPCWSTR);
   //
   // int closed = CloseHandle(MUTEX_HANDLE.address);
   // print('closed": $closed');

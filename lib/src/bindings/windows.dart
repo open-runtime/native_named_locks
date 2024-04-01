@@ -124,11 +124,9 @@ external int ReleaseMutex(int hMutex);
 // [in]           LONG                  lMaximumCount,
 // [in, optional] LPCWSTR               lpName
 // );
-
 @Native<HANDLE Function(IntPtr lpSecurityAttributes, LONG lInitialCount, LONG lMaximumCount, Pointer<Utf16> lpName)>()
 external int CreateSemaphoreW(int lpSecurityAttributes, int lInitialCount, int lMaximumCount, Pointer<Utf16> lpName);
 
 /// Dart FFI for Windows [ReleaseSemaphore]
-
 @Native<BOOL Function(HANDLE hSemaphore, LONG lReleaseCount, Pointer<LONG> lpPreviousCount)>()
 external int ReleaseSemaphore(int hSemaphore, int lReleaseCount, Pointer<LONG> lpPreviousCount);
