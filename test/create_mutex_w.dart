@@ -12,6 +12,14 @@ import 'package:win32/win32.dart'
     show BOOL, CloseHandle, GetLastError, INFINITE, LPWSTR, NULL, TRUE, WaitForSingleObject;
 import 'package:windows_foundation/internal.dart' show getRestrictedErrorDescription;
 
+void printCharacterCodesInHex(String input) {
+  final StringBuffer hexCodes = StringBuffer();
+  for (int unit in input.codeUnits) {
+    hexCodes.write('0x${unit.toRadixString(16).padLeft(4, '0')} ');
+  }
+  print("Dart string character codes in hex: $hexCodes");
+}
+
 extension StringUtf16Pointer on String {
   Pointer<Utf16> toNativeUtf16() {
     final units = codeUnits;
@@ -82,6 +90,8 @@ main() async {
   print("Character codes in Dart string: ${name.codeUnits.map((unit) => '0x${unit.toRadixString(16)}').join(' ')}");
 
   // Free the allocated memory for the native string
+
+  printCharacterCodesInHex(name);
 
   print("\n =================================== CREATE MUTEX W ==================================== \n");
   final int mutex_address = CreateSemaphoreW(NULL, 1, 1, native_LPCWSTR);

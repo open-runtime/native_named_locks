@@ -3,6 +3,15 @@
 #include <sstream>
 #include <iomanip>
 #include <vector>
+#include <string>
+
+void printCharacterCodesInHex(const std::wstring& input) {
+    std::wstringstream hexCodes;
+    for (wchar_t ch : input) {
+        hexCodes << L"0x" << std::hex << std::setw(4) << std::setfill(L'0') << static_cast<int>(ch) << L" ";
+    }
+    std::wcout << L"C++ string character codes in hex: " << hexCodes.str() << std::endl;
+}
 
 int main() {
     LPCWSTR name = L"Global\\cross_isolate_windows_lock"; // Name of the semaphore object
@@ -26,6 +35,7 @@ int main() {
     std::wcout << L"Character codes in LPCWSTR string: " << woss.str() << std::endl;
 
 
+    printCharacterCodesInHex(name);
 
    // Check if the name length exceeds MAX_PATH
     if (wcslen(name) >= MAX_PATH) {
