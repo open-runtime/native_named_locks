@@ -22,7 +22,7 @@ int main() {
     } else {
         if (GetLastError() == ERROR_ALREADY_EXISTS) {
             // If the semaphore already exists
-            std::wcout << L"From CPP Semaphore already exists." << std::endl;
+            std::wcout << L"From CPP Semaphore already exists." << ERROR_ALREADY_EXISTS << std::endl;
         } else {
             // If the semaphore was created successfully
             std::wcout << L"From CPP Semaphore created successfully." << std::endl;
