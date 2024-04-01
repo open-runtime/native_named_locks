@@ -1,6 +1,9 @@
 #include <windows.h>
 #include <iostream>
-
+#include <sstream>
+#include <iomanip>
+#include <vector>
+#include <string>
 
 void printCharacterCodesInHex(const std::wstring& input) {
     std::wstringstream hexCodes;
@@ -15,7 +18,7 @@ void printCharacterCodesInHex(const std::wstring& input) {
 }
 
 int main() {
-    LPCWSTR name = L"Global\\cross_isolate_windows_lock\0"; // Name of the semaphore object
+    LPCWSTR name = L"Global\\cross_isolate_windows_lock\0"; // Name of the Mutex object
 
     // Print the address of 'name'
     std::wcout << L"The address of 'name' is: "
@@ -45,65 +48,60 @@ int main() {
 
    // Check if the name length exceeds MAX_PATH
     if (wcslen(name) >= MAX_PATH) {
-        std::wcout << L"Error: Semaphore name exceeds the maximum allowed length of " << MAX_PATH << L" characters." << std::endl;
+        std::wcout << L"Error: Mutex name exceeds the maximum allowed length of " << MAX_PATH << L" characters." << std::endl;
         return 1; // Exit with an error code
     }
 
     HANDLE mutexHandle;
 
-//    std::wcout << L"From CPP Starting the program. & CreateMutexW" << std::endl;
-    // Try to create a mutex object
+    // Try to create a Mutex object
     mutexHandle = CreateMutexW(NULL, TRUE, name);
 
-//    std::wcout << L"CreateMutexW:" << mutexHandle << std::endl;
-
-    // Check if the mutex was created successfully
+    // Check if the Mutex was created successfully
     if (mutexHandle == NULL) {
-        std::wcout << L"From CPP CreateMutexW failed with error: " << GetLastError() << std::endl;
+        std::wcout << L"From CPP CreateSemaphoreW failed with error: " << GetLastError() << std::endl;
     } else {
         if (GetLastError() == ERROR_ALREADY_EXISTS) {
-            // If the mutex already exists
-            std::wcout << L"From CPP Mutex already exists." << std::endl;
+            // If the Mutex already exists
+            std::wcout << L"From CPP Mutex already exists:" << ERROR_ALREADY_EXISTS << std::endl;
+            std::wcout << L"GetLastError:" << GetLastError() << std::endl;
         } else {
-            // If the mutex was created successfully
+            // If the Mutex was created successfully
             std::wcout << L"From CPP Mutex created successfully." << std::endl;
         }
 
-//        std::wcout << L"Running WaitForSingleObject:" << std::endl;
-
-        // Try to lock the mutex
+        // Try to lock the Mutex
         DWORD dwWaitResult = WaitForSingleObject(mutexHandle, 5000); // Wait for 5 seconds
         std::wcout << L"From CPP WaitForSingleObject returned: " << dwWaitResult << std::endl;
 
         switch (dwWaitResult) {
-            // The thread got mutex ownership
+            // The thread got Mutex ownership
             case WAIT_OBJECT_0:
                 std::wcout << L"From CPP Mutex locked successfully." << std::endl;
                 // Perform your thread's tasks here.
 
-                // Wait for 5 seconds
+//                // Wait for 5 seconds
                 Sleep(5000); // Sleep takes milliseconds as argument
-
-                // Release the mutex when done
+//
+//                // Release the Mutex when done
                 if (!ReleaseMutex(mutexHandle)) {
                     // Handle error.
-                    std::wcout << L"From CPP Error releasing mutex." << std::endl;
+                    std::wcout << L"From CPP Error releasing Mutex." << std::endl;
                 }
                 break;
 
-            // The thread got ownership of an abandoned mutex
-            // The mutex is in an indeterminate state
+            // The thread got ownership of an abandoned Mutex
+            // The Mutex is in an indeterminate state
             case WAIT_ABANDONED:
                 std::wcout << L"From CPP Mutex was abandoned." << std::endl;
                 break;
         }
     }
 
-
     // Wait for 30 seconds
     Sleep(30000); // Sleep takes milliseconds as argument
 
-    // Close the mutex handle
+    // Close the Mutex handle
     if (mutexHandle) {
         BOOL closeResult = CloseHandle(mutexHandle);
         if (closeResult) {
