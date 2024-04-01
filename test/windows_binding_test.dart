@@ -203,15 +203,15 @@ void main() {
 
         bool acquired = true;
 
-        if (mutex_address == nullptr) {
-          print(
-              "\n $isolate_id =================================== GET LAST ERROR ==================================== \n");
-          int native_last_error = GetLastError();
-          print('$isolate_id || $native_last_error');
-          String? error_message = getRestrictedErrorDescription(native_last_error);
-          print('$isolate_id Error: ${error_message}');
-          acquired = false;
-        }
+        // if (mutex_address == nullptr) {
+        print(
+            "\n $isolate_id =================================== GET LAST ERROR ==================================== \n");
+        int native_last_error = GetLastError();
+        print('$isolate_id || $native_last_error');
+        String? error_message = getRestrictedErrorDescription(native_last_error);
+        print('$isolate_id Error: ${error_message}');
+        acquired = false;
+        // }
 
         // final WeakReference<NamedLockGuard> reference = NamedLocks.create(name: lockFilePath, nameIsUnixPath: true);
 
@@ -249,8 +249,11 @@ void main() {
 
       // Spawn the first helper isolate
       final result1 = spawnHelperIsolate(identifier, 1);
+      sleep(Duration(milliseconds: Random().nextInt(500)));
       final result2 = spawnHelperIsolate(identifier, 2);
+      sleep(Duration(milliseconds: Random().nextInt(500)));
       final result3 = spawnHelperIsolate(identifier, 3);
+      sleep(Duration(milliseconds: Random().nextInt(500)));
       final result4 = spawnHelperIsolate(identifier, 4);
 
       // Wait for both isolates to complete their work
