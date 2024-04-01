@@ -71,12 +71,11 @@ main() async {
     print('process_b Exit code: $code');
   });
 
-  final name = 'cross_isolate_windows_lock';
-  final identifier = join("Global\\", name);
+  final name = join("Global\\", 'cross_isolate_windows_lock');
 
   await completer.future;
 
-  print(identifier);
+  print(name);
   final LPWSTR native_LPCWSTR = name.toNativeUtf16();
   print('address: ${native_LPCWSTR.address}');
 
@@ -87,7 +86,7 @@ main() async {
   print("Complete string: ${native_LPCWSTR.toDartString()}");
 
   // Print each character's Unicode code in 'nativeName' as a list of hex values
-  print("Character codes in Dart string: ${name.codeUnits.map((unit) => '0x${unit.toRadixString(16)}').join(' ')}");
+  // print("Character codes in Dart string: ${name.codeUnits.map((unit) => '0x${unit.toRadixString(16)}').join(' ')}");
 
   // Free the allocated memory for the native string
 
