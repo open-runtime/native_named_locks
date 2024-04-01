@@ -1,19 +1,15 @@
 // ignore_for_file: non_constant_identifier_names, camel_case_types
 
-import 'dart:ffi' show Native, Pointer, Void, nullptr;
-import 'package:ffi/ffi.dart' show Utf16;
-import 'package:win32/src/types.dart' show HANDLE, LPWSTR;
-import 'package:win32/win32.dart' show BOOL;
-// import 'package:windows_foundation/internal.dart' show IPropertyValue;
-// /Users/tsavo/.pub-cache/hosted/pub.dev/win32-5.3.0/lib/src/types.dart
+import 'dart:ffi' show Int32, IntPtr, Native, Pointer, Uint32, Void, nullptr;
+import 'package:ffi/ffi.dart';
+import 'package:win32/src/types.dart' show DWORD, DWORDLONG, HANDLE, LONG32, LPWSTR;
+import 'package:win32/win32.dart' show BOOL, SECURITY_ATTRIBUTES;
 
-// final class HANDLE extends Opaque {}
+final DWORD WAIT_ABANDONED = 0x00000080 as DWORD;
+// or DWORD
+final DWORD WAIT_OBJECT_0 = 0x00000000 as DWORD;
 
-const WAIT_ABANDONED = 0x00000080;
-const WAIT_OBJECT_0 = 0x00000000;
-const WAIT_TIMEOUT = 0x00000102;
-
-// const INFINITE = 0xFFFFFFFF;
+final DWORD WAIT_TIMEOUT = 0x00000102 as DWORD;
 
 /// Dart FFI for Windows [CreateMutexW]
 ///
@@ -65,8 +61,10 @@ const WAIT_TIMEOUT = 0x00000102;
 /// [lpMutexAttributes] A pointer to a [SECURITY_ATTRIBUTES] structure.
 
 // LPWSTR should okay as both LPWSTR & LPCWSTR are Pointer<Utf16> from the dart side
-@Native<HANDLE Function(Pointer<Void>, BOOL, LPWSTR)>()
-external int CreateMutexW(Pointer<Void> lpMutexAttributes, int bInitialOwner, LPWSTR lpName);
+// Pointer<SECURITY_ATTRIBUTES>
+// Pointer<Utf16>
+@Native<HANDLE Function(IntPtr lpSecurityAttributes, BOOL bInitialOwner, Pointer<Utf16> lpName)>()
+external int CreateMutexW(int lpSecurityAttributes, int bInitialOwner, Pointer<Utf16> lpName);
 
 /// Dart FFI for Windows [ReleaseMutex]
 ///
@@ -105,117 +103,17 @@ external int CreateMutexW(Pointer<Void> lpMutexAttributes, int bInitialOwner, LP
 @Native<BOOL Function(HANDLE hMutex)>()
 external int ReleaseMutex(int hMutex);
 
-/// Dart FFI for Windows [WaitForSingleObject]
+/// Waits until the specified object is in the signaled state or the
+/// time-out interval elapses.
 ///
-/// https://learn.microsoft.com/en-us/windows/win32/api/synchapi/nf-synchapi-waitforsingleobject
-///
-/// ```cpp
-///
-///   DWORD WaitForSingleObject(
-///     [in] HANDLE hHandle,
-///     [in] DWORD  dwMilliseconds
-///   );
-///
-/// ```
-///
-/// Waits until the specified object is in the signaled state or the time-out interval elapses.
-///
-/// To enter an alertable wait state, use the [WaitForSingleObjectEx] function.
-/// To wait for multiple objects, use [WaitForMultipleObjects].
-///
-/// [hHandle] A handle to the object. For a list of the object types whose handles can be
-/// specified, see the Remarks section. If this handle is closed while the wait is still
-/// pending, the function's behavior is undefined. The handle must have the [SYNCHRONIZE]
-/// access right. For more information, see Standard Access Rights.
-///
-/// [dwMilliseconds] The time-out interval, in milliseconds. If a nonzero value is specified,
-/// the function waits until the object is signaled or the interval elapses. If [dwMilliseconds]
-/// is zero, the function does not enter a wait state if the object is not signaled; it always
-/// returns immediately. If [dwMilliseconds] is [INFINITE], the function will return only when
-/// the object is signaled.
-///
-/// Returns a [DWORD] value indicating the result of the wait operation.
-
-// Not needed as it exists in the win32 package
-// @Native<Uint32 Function(Pointer<HANDLE>, Uint32)>()
-// external int WaitForSingleObject(Pointer<HANDLE> hHandle, int dwMilliseconds);
-
-/// Dart FFI for Windows [CloseHandle]
-///
-/// https://learn.microsoft.com/en-us/windows/win32/api/handleapi/nf-handleapi-closehandle
-///
-/// ```cpp
-///
-/// BOOL CloseHandle(
-///   [in] HANDLE hObject
+/// ```c
+/// DWORD WaitForSingleObject(
+///   HANDLE hHandle,
+///   DWORD  dwMilliseconds
 /// );
-///
 /// ```
-///
-/// Closes an open object handle.
-///
-/// [hObject] A valid handle to an open object.
-///
-/// Returns a non-zero value if the function succeeds, or zero if the function fails.
-/// To get extended error information, call [GetLastError].
-///
-/// Remarks:
-///
-/// The [CloseHandle] function closes handles to various objects, such as files, events,
-/// processes, threads, and more. Refer to the official documentation for a complete list
-/// of supported objects.
-///
-/// After calling the functions that create these objects, [CloseHandle] should be used
-/// when the object is no longer needed. The documentation for each creator function
-/// indicates how to properly close the handle and what happens to pending operations.
-///
-/// In general, an application should call [CloseHandle] once for each handle it opens.
-/// It is usually not necessary to call [CloseHandle] if a function using the handle fails
-/// with [ERROR_INVALID_HANDLE], as this typically indicates that the handle is already
-/// invalidated. However, some functions may use [ERROR_INVALID_HANDLE] to indicate that
-/// the object itself is no longer valid, in which case the application should close the
-/// handle.
-///
-/// If a handle is associated with a transaction, all transacted handles should be closed
-/// before committing the transaction.
-///
-/// Closing a thread handle does not terminate the associated thread or remove the thread
-/// object. Similarly, closing a process handle does not terminate the associated process
-/// or remove the process object. Proper cleanup requires terminating the thread/process
-/// and closing all related handles.
-///
-/// Do not use [CloseHandle] to close a socket. Instead, use the [closesocket] function.
-///
-/// Do not use [CloseHandle] to close a handle to an open registry key. Instead, use the
-/// [RegCloseKey] function.
-// @Native<Int32 Function(Pointer<HANDLE>)>()
-// external int CloseHandle(Pointer<HANDLE> hObject);
+/// {@category kernel32}
+int WaitForSingleObject(int hHandle, int dwMilliseconds) => _WaitForSingleObject(hHandle, dwMilliseconds);
 
-/// Dart FFI for Windows [GetLastError]
-///
-/// https://learn.microsoft.com/en-us/windows/win32/api/errhandlingapi/nf-errhandlingapi-getlasterror
-///
-///   ```cpp
-///
-///     _Post_equals_last_error_ DWORD GetLastError();
-///
-///   ```
-///
-/// Retrieves the calling thread's last-error code value.
-///
-/// The last-error code is maintained on a per-thread basis. Multiple threads do not
-/// overwrite each other's last-error code.
-///
-/// Returns the calling thread's last-error code.
-///
-/// The Return Value section of the documentation for each function that sets the last-error
-/// code notes the conditions under which the function sets the last-error code. Most functions
-/// that set the thread's last-error code set it when they fail. However, some functions also
-/// set the last-error code when they succeed. If the function is not documented to set the
-/// last-error code, the value returned by this function is simply the most recent last-error
-/// code to have been set; some functions set the last-error code to 0 on success and others
-/// do not.
-///
-/// See System Error Codes Here: https://learn.microsoft.com/en-us/windows/win32/debug/system-error-codes
-// @Native<Int32 Function()>()
-// external int GetLastError();
+final _WaitForSingleObject = _kernel32.lookupFunction<Uint32 Function(IntPtr hHandle, Uint32 dwMilliseconds),
+    int Function(int hHandle, int dwMilliseconds)>('WaitForSingleObject');

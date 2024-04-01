@@ -57,7 +57,7 @@ main() async {
   final LPWSTR native_LPCWSTR = name.toNativeUtf16(allocator: malloc);
 
   print("\n =================================== CREATE MUTEX W ==================================== \n");
-  final int mutex_address = CreateMutexW(nullptr, TRUE, native_LPCWSTR);
+  final int mutex_address = CreateMutexW(NULL, TRUE, native_LPCWSTR);
   final MUTEX_HANDLE = Pointer.fromAddress(mutex_address);
 
   print(mutex_address);
