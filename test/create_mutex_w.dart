@@ -3,7 +3,7 @@ import 'dart:ffi' show Allocator, Pointer, Uint16, Uint16Pointer, nullptr;
 import 'dart:io' show File, Process, ProcessStartMode, sleep;
 import 'dart:typed_data' show Uint16List;
 
-import 'package:ffi/ffi.dart' show StringUtf16Pointer, Utf16, Utf16Pointer, malloc;
+import 'package:ffi/ffi.dart' show Utf16, Utf16Pointer, malloc;
 import 'package:path/path.dart' show dirname, join;
 import 'package:runtime_native_named_locks/src/bindings/windows.dart'
     show CreateMutexW, CreateSemaphoreW, WAIT_ABANDONED, WAIT_OBJECT_0, WAIT_TIMEOUT;
@@ -20,19 +20,19 @@ void printCharacterCodesInHex(String input) {
   print("Dart string character codes in hex: $hexCodes");
 }
 
-// extension StringUtf16Pointer on String {
-//   Pointer<Utf16> toNativeUtf16() {
-//     final units = codeUnits;
-//     final Pointer<Uint16> result = malloc.allocate<Uint16>(units.length + 1);
-//     final Uint16List nativeString = result.asTypedList(units.length + 1);
-//     nativeString.setRange(0, units.length, units);
-//     nativeString[units.length] = 0;
-//     print("Native String: $nativeString");
-//     print("Character codes in Dart string: ${nativeString.map((unit) => '0x${unit.toRadixString(16)}').join(' ')}");
-//
-//     return result.cast();
-//   }
-// }
+extension StringUtf16Pointer on String {
+  Pointer<Utf16> toNativeUtf16() {
+    final units = codeUnits;
+    final Pointer<Uint16> result = malloc.allocate<Uint16>(units.length + 1);
+    final Uint16List nativeString = result.asTypedList(units.length + 1);
+    nativeString.setRange(0, units.length, units);
+    nativeString[units.length] = 0;
+    print("Native String: $nativeString");
+    print("Character codes in Dart string: ${nativeString.map((unit) => '0x${unit.toRadixString(16)}').join(' ')}");
+
+    return result.cast();
+  }
+}
 
 main() async {
   final String exe = join(dirname(Frame.caller(0).uri.toFilePath()), 'native_create_semaphore_w.exe');
