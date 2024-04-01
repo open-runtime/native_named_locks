@@ -3,7 +3,7 @@
 import 'dart:ffi' show Int32, IntPtr, Native, Pointer, Uint32, Void, nullptr;
 import 'package:ffi/ffi.dart';
 import 'package:win32/src/types.dart' show DWORD, DWORDLONG, HANDLE, LONG32, LPWSTR;
-import 'package:win32/win32.dart' show BOOL, SECURITY_ATTRIBUTES;
+import 'package:win32/win32.dart' show BOOL, LONG, SECURITY_ATTRIBUTES;
 
 final WAIT_ABANDONED = 0x00000080;
 // or DWORD
@@ -117,3 +117,18 @@ external int ReleaseMutex(int hMutex);
 //
 // final _WaitForSingleObject = _kernel32.lookupFunction<Uint32 Function(IntPtr hHandle, Uint32 dwMilliseconds),
 //     int Function(int hHandle, int dwMilliseconds)>('WaitForSingleObject');
+
+// HANDLE CreateSemaphoreW(
+// [in, optional] LPSECURITY_ATTRIBUTES lpSemaphoreAttributes,
+// [in]           LONG                  lInitialCount,
+// [in]           LONG                  lMaximumCount,
+// [in, optional] LPCWSTR               lpName
+// );
+
+@Native<HANDLE Function(IntPtr lpSecurityAttributes, LONG lInitialCount, LONG lMaximumCount, Pointer<Utf16> lpName)>()
+external int CreateSemaphoreW(int lpSecurityAttributes, int lInitialCount, int lMaximumCount, Pointer<Utf16> lpName);
+
+/// Dart FFI for Windows [ReleaseSemaphore]
+
+@Native<BOOL Function(HANDLE hSemaphore, LONG lReleaseCount, Pointer<LONG> lpPreviousCount)>()
+external int ReleaseSemaphore(int hSemaphore, int lReleaseCount, Pointer<LONG> lpPreviousCount);

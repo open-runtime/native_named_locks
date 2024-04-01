@@ -5,14 +5,14 @@ import 'dart:io' show File, Process, ProcessStartMode, sleep;
 import 'package:ffi/ffi.dart' show StringUtf16Pointer, malloc;
 import 'package:path/path.dart' show dirname, join;
 import 'package:runtime_native_named_locks/src/bindings/windows.dart'
-    show CreateMutexW, WAIT_ABANDONED, WAIT_OBJECT_0, WAIT_TIMEOUT;
+    show CreateMutexW, CreateSemaphoreW, WAIT_ABANDONED, WAIT_OBJECT_0, WAIT_TIMEOUT;
 import 'package:stack_trace/stack_trace.dart' show Frame;
 import 'package:win32/win32.dart'
     show BOOL, CloseHandle, GetLastError, INFINITE, LPWSTR, NULL, TRUE, WaitForSingleObject;
 import 'package:windows_foundation/internal.dart' show getRestrictedErrorDescription;
 
 main() async {
-  final String exe = join(dirname(Frame.caller(0).uri.toFilePath()), 'native_create_mutex_w.exe');
+  final String exe = join(dirname(Frame.caller(0).uri.toFilePath()), 'native_create_semaphore_w.exe');
   // ensure exe exists
   print('exe exists ${File(exe).existsSync()}');
 
@@ -57,7 +57,8 @@ main() async {
   final LPWSTR native_LPCWSTR = name.toNativeUtf16();
 
   print("\n =================================== CREATE MUTEX W ==================================== \n");
-  final int mutex_address = CreateMutexW(NULL, TRUE, native_LPCWSTR);
+  final int mutex_address = CreateSemaphoreW(NULL, 1, 1, native_LPCWSTR);
+  // final int mutex_address = CreateMutexW(NULL, TRUE, native_LPCWSTR);
   final MUTEX_HANDLE = Pointer.fromAddress(mutex_address);
 
   print(mutex_address);
