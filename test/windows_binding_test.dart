@@ -46,6 +46,7 @@ void main() {
       // typedef int BOOL, *PBOOL, *LPBOOL;
       print("\n=================================== CREATE MUTEX W ==================================== \n");
       final int mutex_address = CreateMutexW(nullptr, 0, native_LPCWSTR);
+      // If lpName matches the name of an existing event, semaphore, waitable timer, job, or file-mapping object, the function fails and the GetLastError function returns ERROR_INVALID_HANDLE. This occurs because these objects share the same namespace.
       print(mutex_address);
 
       final MUTEX_HANDLE = Pointer.fromAddress(mutex_address);
@@ -105,15 +106,15 @@ void main() {
       final MUTEX_HANDLE = Pointer.fromAddress(mutex_address);
 
       print(mutex_address);
+      print(MUTEX_HANDLE == nullptr);
       print(MUTEX_HANDLE.address);
+      print(MUTEX_HANDLE.address == nullptr.address);
 
-      if (mutex_address == nullptr) {
-        print("\n=================================== GET LAST ERROR ==================================== \n");
-        int native_last_error = GetLastError();
-        print(native_last_error);
-        String? error_message = getRestrictedErrorDescription(native_last_error);
-        print('Error: ${error_message}');
-      }
+      print("\n=================================== GET LAST ERROR ==================================== \n");
+      int native_last_error = GetLastError();
+      print(native_last_error);
+      String? error_message = getRestrictedErrorDescription(native_last_error);
+      print('Error: ${error_message}');
 
       print("\n=================================== FREE ==================================== \n");
       malloc.free(native_LPCWSTR);
