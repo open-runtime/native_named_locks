@@ -19,22 +19,43 @@ int main() {
             // If the mutex was created successfully
             std::wcout << L"From CPP Mutex created successfully." << std::endl;
         }
-    }
 
+        // Try to lock the mutex
+        DWORD dwWaitResult = WaitForSingleObject(mutexHandle, INFINITE); // Wait indefinitely
+
+        switch (dwWaitResult) {
+            // The thread got mutex ownership
+            case WAIT_OBJECT_0:
+                std::wcout << L"From CPP Mutex locked successfully." << std::endl;
+                // Perform your thread's tasks here.
+
+                // Release the mutex when done
+                if (!ReleaseMutex(mutexHandle)) {
+                    // Handle error.
+                    std::wcout << L"From CPP Error releasing mutex." << std::endl;
+                }
+                break;
+
+            // The thread got ownership of an abandoned mutex
+            // The mutex is in an indeterminate state
+            case WAIT_ABANDONED:
+                std::wcout << L"From CPP Mutex was abandoned." << std::endl;
+                break;
+        }
+    }
 
     // Wait for 1 minute
     Sleep(30000); // Sleep takes milliseconds as argument
 
     // Close the mutex handle
-     if (mutexHandle) {
-         BOOL closeResult = CloseHandle(mutexHandle);
-         if (closeResult) {
-             std::wcout << L"From CPP Mutex handle closed successfully." << std::endl;
-         } else {
-             std::wcout << L"From CPP CloseHandle failed with error: " << GetLastError() << std::endl;
-         }
-     }
-
+    if (mutexHandle) {
+        BOOL closeResult = CloseHandle(mutexHandle);
+        if (closeResult) {
+            std::wcout << L"From CPP Mutex handle closed successfully." << std::endl;
+        } else {
+            std::wcout << L"From CPP CloseHandle failed with error: " << GetLastError() << std::endl;
+        }
+    }
 
     return 0;
 }
