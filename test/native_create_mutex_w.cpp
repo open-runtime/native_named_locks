@@ -5,8 +5,11 @@ int main() {
     LPCWSTR name = L"Global\\cross_isolate_windows_lock"; // Name of the mutex object
     HANDLE mutexHandle;
 
+    std:wcout << L"From CPP Starting the program. & CreateMutexW" << std::endl;
     // Try to create a mutex object
     mutexHandle = CreateMutexW(NULL, TRUE, name);
+
+    std:wcout << L"CreateMutexW:" << mutexHandle << std::endl;
 
     // Check if the mutex was created successfully
     if (mutexHandle == NULL) {
@@ -20,6 +23,9 @@ int main() {
             std::wcout << L"From CPP Mutex created successfully." << std::endl;
         }
 
+
+        std:wcout << L"Running WaitForSingleObject:" << std::endl;
+
         // Try to lock the mutex
         DWORD dwWaitResult = WaitForSingleObject(mutexHandle, 5000); // Wait indefinitely
         //        Print the result of the wait operation
@@ -32,8 +38,8 @@ int main() {
                 std::wcout << L"From CPP Mutex locked successfully." << std::endl;
                 // Perform your thread's tasks here.
 
-                // Wait for 1 minute
-                Sleep(60000); // Sleep takes milliseconds as argument
+                // Wait for 30 seconds
+                Sleep(30000); // Sleep takes milliseconds as argument
 
                 // Release the mutex when done
                 if (!ReleaseMutex(mutexHandle)) {
@@ -51,8 +57,8 @@ int main() {
     }
 
 
-    // Wait for 1 minute
-    Sleep(120000); // Sleep takes milliseconds as argument
+    // Wait for 30 seconds
+    Sleep(30000); // Sleep takes milliseconds as argument
 
     // Close the mutex handle
     if (mutexHandle) {
