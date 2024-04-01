@@ -2,17 +2,19 @@ import 'dart:ffi' show Pointer, nullptr;
 import 'dart:io';
 
 import 'package:ffi/ffi.dart' show StringUtf16Pointer, malloc;
-import 'package:path/path.dart' show join;
+import 'package:path/path.dart' show dirname, join;
 import 'package:runtime_native_named_locks/src/bindings/windows.dart'
     show CreateMutexW, WAIT_ABANDONED, WAIT_OBJECT_0, WAIT_TIMEOUT;
+import 'package:stack_trace/stack_trace.dart';
 import 'package:win32/win32.dart' show CloseHandle, GetLastError, INFINITE, LPWSTR, WaitForSingleObject;
 import 'package:windows_foundation/internal.dart' show getRestrictedErrorDescription;
 
 main() {
+  final String exe = join(dirname(Frame.caller(0).uri.toFilePath()), 'native_create_mutex_w.exe');
+
   // Run CPP native_create_mutex_w.exe
   // test\native_create_mutex_w.exe
-  final Future<Process> started =
-      Process.start('native_create_mutex_w.exe', [], mode: ProcessStartMode.detachedWithStdio);
+  final Future<Process> started = Process.start(exe, [], mode: ProcessStartMode.detachedWithStdio);
 
   started.then((Process process) {
     print('Started process: ${process.pid}');
