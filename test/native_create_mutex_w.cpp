@@ -29,6 +29,9 @@ int main() {
                 std::wcout << L"From CPP Mutex locked successfully." << std::endl;
                 // Perform your thread's tasks here.
 
+                // Wait for 1 minute
+                Sleep(60000); // Sleep takes milliseconds as argument
+
                 // Release the mutex when done
                 if (!ReleaseMutex(mutexHandle)) {
                     // Handle error.
@@ -44,8 +47,9 @@ int main() {
         }
     }
 
+
     // Wait for 1 minute
-    Sleep(30000); // Sleep takes milliseconds as argument
+    Sleep(60000); // Sleep takes milliseconds as argument
 
     // Close the mutex handle
     if (mutexHandle) {
