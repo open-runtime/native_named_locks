@@ -1,6 +1,8 @@
 @TestOn('windows')
-
 import 'dart:ffi';
+import 'dart:io' show sleep;
+import 'dart:isolate' show Isolate, ReceivePort, SendPort;
+import 'dart:math' show Random;
 import 'package:ffi/ffi.dart';
 
 import 'package:win32/src/types.dart' show HANDLE, LPWSTR;
@@ -9,7 +11,7 @@ import 'package:win32/win32.dart' show BOOL;
 import 'package:path/path.dart' show join;
 import 'package:runtime_native_named_locks/src/bindings/windows.dart'
     show CreateMutexW, ReleaseMutex, WAIT_ABANDONED, WAIT_OBJECT_0, WAIT_TIMEOUT;
-import 'package:test/test.dart' show TestOn, group, test;
+import 'package:test/test.dart' show TestOn, equals, everyElement, expect, group, test;
 import 'package:win32/win32.dart' show CloseHandle, GetLastError, INFINITE, WaitForSingleObject;
 import 'package:windows_foundation/internal.dart' show getRestrictedErrorDescription;
 
@@ -179,6 +181,83 @@ void main() {
       print("\n=================================== RELEASE MUTEXES ==================================== \n");
 
       malloc.free(native_LPCWSTR);
+    });
+  });
+
+  group('Test Windows Binding Across Isolates', () {
+    // final String name = join(dirname(Frame.caller(0).uri.toFilePath()), 'testing_named_unix_locks.lock');
+
+    Future<String> spawnHelperIsolate(String name, int isolate_id) async {
+      // The entry point for the isolate
+      void isolateEntryPoint(SendPort sendPort) {
+        final LPWSTR native_LPCWSTR = name.toNativeUtf16(allocator: malloc);
+        print(
+            "\n $isolate_id =================================== CREATE MUTEX W ==================================== \n");
+        final int mutex_address = CreateMutexW(nullptr, 0, native_LPCWSTR);
+        final MUTEX_HANDLE = Pointer.fromAddress(mutex_address);
+
+        print(mutex_address);
+        print(MUTEX_HANDLE == nullptr);
+        print(MUTEX_HANDLE.address);
+        print(MUTEX_HANDLE.address == nullptr.address);
+
+        bool acquired = true;
+        if (mutex_address == nullptr) {
+          print(
+              "\n $isolate_id =================================== GET LAST ERROR ==================================== \n");
+          int native_last_error = GetLastError();
+          print('$isolate_id || $native_last_error');
+          String? error_message = getRestrictedErrorDescription(native_last_error);
+          print('$isolate_id Error: ${error_message}');
+          acquired = false;
+        }
+
+        // final WeakReference<NamedLockGuard> reference = NamedLocks.create(name: lockFilePath, nameIsUnixPath: true);
+
+        // Attempt to acquire the lock
+        // final acquired = reference.target?.acquire() ?? false;
+
+        // Simulate some work
+        sleep(Duration(milliseconds: Random().nextInt(500)));
+
+        // Release the lock
+        // reference.target?.unlock();
+        // reference.target?.dispose()
+        int closed = CloseHandle(MUTEX_HANDLE.address);
+        print('$isolate_id  && closed": $closed');
+
+        malloc.free(native_LPCWSTR);
+
+        // Signal completion
+        sendPort.send(acquired ? 'success' : 'failure');
+      }
+
+      // Create a receive port to get messages from the isolate
+      final receivePort = ReceivePort();
+
+      // Spawn the isolate
+      await Isolate.spawn(isolateEntryPoint, receivePort.sendPort);
+
+      // Wait for the isolate to send its message
+      return await receivePort.first as String;
+    }
+
+    test('multiple isolates using the same named lock', () async {
+      final name = 'cross_isolate_windows_lock';
+      final identifier = join("Global\\", name);
+
+      // Spawn the first helper isolate
+      final result1 = spawnHelperIsolate(identifier, 1);
+      final result2 = spawnHelperIsolate(identifier, 2);
+      final result3 = spawnHelperIsolate(identifier, 3);
+      final result4 = spawnHelperIsolate(identifier, 4);
+
+      // Wait for both isolates to complete their work
+      final outcomes = await Future.wait([result1, result2, result3, result4]);
+
+      // Check that both isolates report success
+      // This implies that they were both able to acquire and release the lock without interference
+      expect(outcomes, everyElement(equals('success')));
     });
   });
 }
