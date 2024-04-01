@@ -5,11 +5,11 @@ import 'package:ffi/ffi.dart';
 import 'package:win32/src/types.dart' show DWORD, DWORDLONG, HANDLE, LONG32, LPWSTR;
 import 'package:win32/win32.dart' show BOOL, SECURITY_ATTRIBUTES;
 
-final DWORD WAIT_ABANDONED = 0x00000080 as DWORD;
+final WAIT_ABANDONED = 0x00000080;
 // or DWORD
-final DWORD WAIT_OBJECT_0 = 0x00000000 as DWORD;
+final WAIT_OBJECT_0 = 0x00000000;
 
-final DWORD WAIT_TIMEOUT = 0x00000102 as DWORD;
+final WAIT_TIMEOUT = 0x00000102;
 
 /// Dart FFI for Windows [CreateMutexW]
 ///
