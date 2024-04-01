@@ -1,3 +1,4 @@
+import 'dart:async' show Completer;
 import 'dart:ffi' show Pointer, nullptr;
 import 'dart:io' show File, Process, ProcessStartMode, sleep;
 
@@ -32,18 +33,24 @@ main() async {
 
   print('Started process: ${process_b.pid}');
 
+  final Completer<void> completer = Completer<void>();
+
   process_b.stdout.listen((List<int> event) {
+    if (!completer.isCompleted) completer.complete();
     print('process_b stdout: ${String.fromCharCodes(event)}');
   });
   process_b.stderr.listen((List<int> event) {
     print('process_b stderr: ${String.fromCharCodes(event)}');
   });
+
   process_b.exitCode.then((int code) {
     print('process_b Exit code: $code');
   });
 
   final name = 'cross_isolate_windows_lock';
   final identifier = join("Global\\", name);
+
+  await completer.future;
 
   print(identifier);
   final LPWSTR native_LPCWSTR = name.toNativeUtf16(allocator: malloc);
@@ -91,10 +98,10 @@ main() async {
   // Run CPP native_create_mutex_w.exe
   // test\native_create_mutex_w.exe
 
-  sleep(Duration(seconds: 30));
-
-  malloc.free(native_LPCWSTR);
-
-  int closed = CloseHandle(MUTEX_HANDLE.address);
-  print('closed": $closed');
+  // sleep(Duration(seconds: 30));
+  //
+  // malloc.free(native_LPCWSTR);
+  //
+  // int closed = CloseHandle(MUTEX_HANDLE.address);
+  // print('closed": $closed');
 }
