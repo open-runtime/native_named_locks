@@ -127,7 +127,7 @@ jobs:
 
       - name: Run C++ code as a background process
         run: |
-          start /B test\native_create_mutex_w.exe
+          Start-Process -FilePath "test\native_create_mutex_w.exe" -NoNewWindow
 
       - name: Run Dart Code
         if: matrix.config.system_information.operating_system_family == 'windows'
