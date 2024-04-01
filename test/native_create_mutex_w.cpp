@@ -1,16 +1,15 @@
 #include <windows.h>
 #include <iostream>
 
-
 int main() {
     LPCWSTR name = L"Global\\cross_isolate_windows_lock"; // Name of the mutex object
     HANDLE mutexHandle;
 
-    std::wcout << L"From CPP Starting the program. & CreateMutexW" << std::endl;
+//    std::wcout << L"From CPP Starting the program. & CreateMutexW" << std::endl;
     // Try to create a mutex object
     mutexHandle = CreateMutexW(NULL, TRUE, name);
 
-    std::wcout << L"CreateMutexW:" << mutexHandle << std::endl;
+//    std::wcout << L"CreateMutexW:" << mutexHandle << std::endl;
 
     // Check if the mutex was created successfully
     if (mutexHandle == NULL) {
@@ -24,7 +23,7 @@ int main() {
             std::wcout << L"From CPP Mutex created successfully." << std::endl;
         }
 
-        std::wcout << L"Running WaitForSingleObject:" << std::endl;
+//        std::wcout << L"Running WaitForSingleObject:" << std::endl;
 
         // Try to lock the mutex
         DWORD dwWaitResult = WaitForSingleObject(mutexHandle, 5000); // Wait for 5 seconds
